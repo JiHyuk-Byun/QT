@@ -1,0 +1,10 @@
+_base_: _train_base
+
+data:
+  _base_: data/objaverse
+
+model:
+  _base_: model/qt
+
+solver:
+  _base_: solver/ptv3

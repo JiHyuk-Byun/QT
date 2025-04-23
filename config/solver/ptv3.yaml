@@ -1,0 +1,13 @@
+_target_: qt.solvers.Ptv3Solver
+
+lr: 0.001
+weight_decay: 0.01
+block_lr_scale: 0.0001
+
+scheduler_config: 
+  type: OneCycleLR
+  max_lr: [0.006, 0.0006]
+  pct_start: 0.05
+  anneal_strategy: "cos"
+  div_factor: 10.0
+  final_div_factor: 1000.0

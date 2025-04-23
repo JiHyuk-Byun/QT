@@ -1,0 +1,135 @@
+from os import path as osp
+import torch
+from torch import nn
+from torch.nn import functional as F
+from torch.optim import AdamW
+from torch.optim.lr_scheduler import OneCycleLR, CosineAnnealingLR, StepLR
+from scipy.stats import pearsonr, spearmanr, kendalltau
+
+from qt.data import ObjaverseDataModule
+from .base import BaseSolver
+from qt.models import PointTransformerV3
+from qt.metrics import PLCC, SROCC, KROCC, RMSE
+
+class Ptv3Solver(BaseSolver):
+
+    def __init__(self, dm: ObjaverseDataModule, model: nn.Module,
+                 
+                 ## optimizer, scheduler params
+                 lr: float = 1e-4,
+                 weight_decay: float = 0.0,
+                 block_lr_scale: float = 0.1,
+
+                 save_ckpt_freq: int = 50,
+                 **scheduler_config: dict,                 
+                 
+                 ):
+        super().__init__()
+
+        self.dm = dm
+        self.model = model
+
+        self.lr = lr
+        self.weight_decay = weight_decay
+#        self.warm_up_epochs = warm_up_epochs
+        self.block_lr_scale = block_lr_scale
+        self.scheduler_config = scheduler_config
+
+        self.loss_fn = nn.SmoothL1Loss()
+        self.plcc_metric = PLCC()
+        self.srocc_metric = SROCC()
+        self.krocc_metric = KROCC()
+        self.rmse_metric = RMSE()
+
+        self.save_ckpt_freq = save_ckpt_freq
+        
+    def configure_optimizers(self):
+        optimizer = AdamW(self.parameters(), lr=self.lr, weight_decay=self.weight_decay)
+        
+        scheduler = self._get_scheduler(optimizer, self.scheduler_config, total_steps=self.total_steps)
+
+        return optimizer, scheduler
+    
+    def forward(self, batch):
+        data_dict = {}
+        data_dict['grid_coord'] = batch['coord']
+        
+        feats = [feat for feat_name, feat in batch.items() if feat_name !=' coord']
+        feats = torch.as_tensor(np.hstack(feats), dtype=torch.float32)
+        data_dict['feat'] = feats
+
+        input['normal'] = batch['normal']
+
+        outputs = self.model(input)
+
+        return outputs
+    
+    def training_step(self, batch, batch_idx):
+        #TODO: PTv3 모델단에서 input과 output 맞춰줘야함.
+        outputs = self(batch)
+        preds = outputs
+        labels = batch['mos']
+
+        loss = self.loss_function(preds, labels)
+        self.log('train/loss', loss.mean().item())
+
+        return {
+            'loss': loss,
+        }
+    
+    def validation_step(self, batch, batch_idx):
+
+        outputs = self(batch)
+        preds = outputs
+        labels = batch['mos']
+
+        preds_normalized = self._min_max_normalized(preds)
+        labels_normalized = self._min_max_normalize(labels)
+
+        #loss = self.loss_fn(preds, labels)
+
+        self.plcc_metric.update(preds_normalized, labels_normalized)
+        self.srocc_metric.update(preds_normalized, labels_normalized)
+        self.krocc_metric.update(preds_normalized, labels_normalized)
+        self.rmse_metric.update(preds_normalized, labels_normalized)
+
+    def on_validation_epoch_end(self):
+        epoch = self.current_epoch
+
+        plcc = self.plcc_metric.compute()
+        srocc = self.srocc_metric.compute()
+        krocc = self.krocc_metric.compute()
+        rmse = self.rmse_metric.compute()
+
+        self.log('val/plcc', plcc, rank_zero_only=True, on_epoch=True, sync_dist=True)
+        self.log('val/srocc', srocc, rank_zero_only=True, on_epoch=True, sync_dist=True)
+        self.log('val/krocc', krocc, rank_zero_only=True, on_epoch=True, sync_dist=True)
+        self.log('val/rmse', rmse, rank_zero_only=True, on_epoch=True, sync_dist=True)
+        self.track_score(srocc)
+
+        if (epoch + 1) % self.save_ckpt_freq == 0:
+            ckpt_path = osp.join(self.out_dir, f'epoch-{epoch+1:03d}.ckpt')
+            self.trainer.save_checkpoint(ckpt_path)
+            print(f'Save checkpoint: {ckpt_path}')
+    
+    @torch.no_grad()
+    def _min_max_normalize(mos_array):
+        return (mos_array - mos_array.min()) / (mos_array.max() - mos_array.min()) * 100
+
+    def _get_scheduler(self, optimizer, scheduler_config, total_steps=None):
+        scheduler_type = scheduler_config["type"]
+        kwargs = {k: v for k, v in scheduler_config.items() if k != "type"}
+
+        if scheduler_type == "OneCycleLR":
+            if total_steps is not None:
+                kwargs["total_steps"] = total_steps
+            return OneCycleLR(optimizer, **kwargs)
+
+        elif scheduler_type == "CosineAnnealingLR":
+            return CosineAnnealingLR(optimizer, **kwargs)
+
+        elif scheduler_type == "StepLR":
+            return StepLR(optimizer, **kwargs)
+
+        else:
+            raise ValueError(f"Unsupported scheduler type: {scheduler_type}")

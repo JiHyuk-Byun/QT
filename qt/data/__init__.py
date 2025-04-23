@@ -1,0 +1,1 @@
+from .objaverse import ObjaverseDataModule

@@ -1,0 +1,15 @@
+torch==2.1.0
+h5py
+tqdm
+sharedarray
+yapf 
+addict 
+einops 
+scipy 
+plyfile 
+termcolor 
+timm
+torch-geometric
+pytorch-cluster 
+pytorch-scatter 
+pytorch-sparse

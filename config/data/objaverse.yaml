@@ -1,0 +1,15 @@
+_base_: objaverse_base
+
+criterion: 5
+dataset_config:
+  manumal_seed: 123456
+  augments:
+    RandomRotate:
+      rotation_range: 360
+    RandomScale:
+      scale: [0.7, 1.5]
+      anisotropic: true
+    RandomShift:
+      shift: [[-0.2, 0.2], [-0.2, 0.2], [-0.2, 0.2]]
+  keys: ['coord', 'grid_coord', 'mos']
+  feats: ['coord', 'color', 'normal']
