@@ -1,6 +1,6 @@
 _target_: qt.models.PointTransformerV3
 
-in_channels: 6
+in_channels: 9
 order: ["z", "z-trans", "hilbert", "hilbert-trans"]
 stride: [2, 2, 2, 2]
 enc_depths: [2, 2, 2, 6, 2]
@@ -20,7 +20,7 @@ drop_path: 0.3
 shuffle_orders: true
 pre_norm: true
 enable_rpe: false
-enable_flash: true
+enable_flash: false
 upcast_attention: false
 upcast_softmax: false
 cls_mode: true

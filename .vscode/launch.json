@@ -1,0 +1,16 @@
+{
+    "version": "0.2.0",
+    "configurations": [
+        {
+            "name": "debug training",
+            "type": "debugpy",
+            "python": "/opt/conda/envs/QT/bin/python3",
+            "request": "launch",
+            "program": "train.py",
+            "console": "integratedTerminal",
+            "justMyCode": true,
+            "args": ["--config", "config/train.yaml",
+                    "--gpus", "0,1,2,3"]
+        },
+    ]
+}

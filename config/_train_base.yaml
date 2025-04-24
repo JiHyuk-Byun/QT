@@ -5,7 +5,7 @@ trainer:
   strategy: ddp
   check_val_every_n_epoch: 4
   log_every_n_steps: 100
-  precision: 16-mixed
+  precision: 32 #16-mixed
 
 wandb:
   secret_path: secrets/wandb.yaml

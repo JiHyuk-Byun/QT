@@ -1,7 +1,6 @@
 import random
 import csv
 
-
 import torch
 import numpy as np
 from collections.abc import Sequence, Mapping
@@ -36,6 +35,24 @@ def shuffle_point(data_dict):
     data_dict = index_operator(data_dict, shuffle_index)
     return data_dict
 
+# def to_tensor(data):
+#     if isinstance(data, torch.Tensor):
+#         return data.float()                          # 이미 Tensor면 무조건 float32 로
+#     elif isinstance(data, str):
+#         return data
+#     elif isinstance(data, (int, float, bool)):
+#         # int/float/bool 모두 float32 스칼라 텐서로
+#         return torch.tensor([data], dtype=torch.float32)
+#     elif isinstance(data, np.ndarray):
+#         # NumPy array 는 무조건 float32 로 캐스팅
+#         return torch.from_numpy(data.astype(np.float32))
+#     elif isinstance(data, Mapping):
+#         return {k: to_tensor(v) for k, v in data.items()}
+#     elif isinstance(data, Sequence):
+#         return [to_tensor(v) for v in data]
+#     else:
+#         raise TypeError(f"type {type(data)} cannot be converted to tensor.")
+    
 def to_tensor(data_dict):
     if isinstance(data_dict, torch.Tensor):
         return data_dict
@@ -71,9 +88,9 @@ def index_operator(data_dict, index, duplicate=False):
             "coord",
             "color",
             "normal",
-            "strength",
-            "segment",
-            "instance",
+#            "mos",
+            "metallic",
+            "roughness",
         ]
     if not duplicate:
         for key in data_dict["index_valid_keys"]:

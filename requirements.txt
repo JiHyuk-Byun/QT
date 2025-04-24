@@ -13,3 +13,8 @@ torch-geometric
 pytorch-cluster 
 pytorch-scatter 
 pytorch-sparse
+
+wandb
+omegaconf
+lightning
+trimesh

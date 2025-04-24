@@ -22,7 +22,7 @@ try:
 except ImportError:
     flash_attn = None
 
-from .serialization import encode
+from qt.serialization import encode
 
 
 @torch.inference_mode()
@@ -963,6 +963,14 @@ class PointTransformerV3(PointModule):
                     )
                 self.dec.add(module=dec, name=f"dec{s}")
 
+
+        final_dim = enc_channels[-1]
+        self.cls_head = nn.Sequential(
+            nn.Linear(final_dim, final_dim //2),
+            nn.GELU(),
+            nn.Linear(final_dim//2, 1)
+        )
+
     def forward(self, data_dict):
         """
         A data_dict is a dictionary containing properties of a batched point cloud.
@@ -977,6 +985,17 @@ class PointTransformerV3(PointModule):
 
         point = self.embedding(point)
         point = self.enc(point)
+        
+        # seg mode
         if not self.cls_mode:
             point = self.dec(point)
-        return point
+            return point
+        
+        # cls mode
+        feats = point.feat
+        batch_idx = point.batch
+        # 배치별 global average pooling: [batch_size, C]
+        pooled = torch_scatter.scatter_mean(feats, batch_idx, dim=0)
+        # MLP 헤드를 통과시켜 [batch_size, 1] → [batch_size]
+        logits = self.cls_head(pooled).squeeze(-1)
+        return logits

@@ -1,15 +1,20 @@
 _base_: objaverse_base
 
-criterion: 5
 dataset_config:
-  manumal_seed: 123456
+  manual_seed: 123456
   augments:
     RandomRotate:
-      rotation_range: 360
+      angle: [-1, 1]
+      axis: 'z'
+      center: [0, 0, 0]
+      p: 0.5
     RandomScale:
       scale: [0.7, 1.5]
       anisotropic: true
     RandomShift:
       shift: [[-0.2, 0.2], [-0.2, 0.2], [-0.2, 0.2]]
+  grid_size: 0.01
+  hash_type: 'fnv'
+  return_grid_coord: true
   keys: ['coord', 'grid_coord', 'mos']
-  feats: ['coord', 'color', 'normal']
+  feat_keys: ['coord', 'color', 'normal']

@@ -3,9 +3,7 @@ from os import path as osp
 from typing import List
 
 import torch
-from torch import nn
 from lightning.pytorch import LightningModule, Callback
-from torchmetrics import Metric
 
 import engine
 
@@ -35,10 +33,10 @@ class BaseSolver(LightningModule):
     def track_score(self, score: any):
         if score > self._best_score:
             self._best_score = score
-            epoch = self.current_epoch
-            best_path = osp.join(self.out_dir, f"best-{epoch}.ckpt")
-            self.trainer.save_checkpoint(best_path)
-            print(f"[BEST] epoch {epoch} val_srocc={score} saved to {best_path}")
+            # epoch = self.current_epoch
+            # best_path = osp.join(self.out_dir, f"best-{epoch}.ckpt")
+            # self.trainer.save_checkpoint(best_path)
+            # print(f"[BEST] epoch {epoch} val_srocc={score} saved to {best_path}")
 
         self.log('score', score, rank_zero_only=True, on_epoch=True, sync_dist=True)
         self.log('best', self._best_score, rank_zero_only=True, on_epoch=True, sync_dist=True)
@@ -67,11 +65,6 @@ class _DefaultTaskCallback(Callback):
             return
         solver.reset_metrics()
 
-    def on_validation_epoch_end(self, trainer, solver):
-        if not isinstance(solver, BaseSolver):
-            return
-        
-        epoch = trainer.current_epoch
         
 
         
