@@ -94,6 +94,7 @@ class Ptv3Solver(BaseSolver):
         self.log('val/srocc', srocc, rank_zero_only=True, on_epoch=True, sync_dist=True)
         self.log('val/krocc', krocc, rank_zero_only=True, on_epoch=True, sync_dist=True)
         self.log('val/rmse', rmse, rank_zero_only=True, on_epoch=True, sync_dist=True)
+        print('srocc:', srocc)
         self.track_score(srocc)
 
         # if (epoch + 1) % self.save_ckpt_freq == 0:

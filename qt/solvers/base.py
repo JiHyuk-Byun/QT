@@ -4,6 +4,7 @@ from typing import List
 
 import torch
 from lightning.pytorch import LightningModule, Callback
+from torchmetrics import Metric
 
 import engine
 
@@ -49,7 +50,11 @@ class BaseSolver(LightningModule):
         self.checkpoint_epoch = checkpoint['epoch']
 
     def reset_metrics(self):
-        pass
+        if self._metrics is None:
+            self._metrics = [value for value in self.modules() if isinstance(value, Metric)]
+
+        for metric in self._metrics:
+            metric.reset()
 
     def reset_parameters(self):
         pass
@@ -58,7 +63,7 @@ class _DefaultTaskCallback(Callback):
     def on_sanity_check_end(self, trainer, solver):
         if not isinstance(solver, BaseSolver):
             return
-        solver._best_score = None
+        solver._best_score = -float('inf')
 
     def on_validation_epoch_start(self, trainer, solver) -> None:
         if not isinstance(solver, BaseSolver):
