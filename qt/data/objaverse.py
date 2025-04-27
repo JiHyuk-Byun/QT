@@ -94,8 +94,8 @@ class ObjaverseDataset(Dataset):
         data = np.load(file_path, allow_pickle=True).item()
         
         data_dict={}
-        data_dict['coord'] = data['xyz'].astype(np.float32)
-        data_dict['color'] = data['rgb'].astype(np.float32)
+        data_dict['coord'] = data['coord'].astype(np.float32)
+        data_dict['color'] = data['color'].astype(np.float32)
         data_dict['normal'] = data['normal'].astype(np.float32)
         #data_dict['roughness'] = data['roughness'].astype(np.float32)
         #data_dict['metallic'] = data['metallic'].astype(np.float32)
@@ -114,6 +114,6 @@ class ObjaverseDataset(Dataset):
         data_dict = to_tensor(shuffle_point(data_dict))
         
         data_dict = self.collect_keys(data_dict)
-        
+        #[coord, grid_coord, 'mos', 'offset', 'feat'(which is concatnated)]
         
         return data_dict

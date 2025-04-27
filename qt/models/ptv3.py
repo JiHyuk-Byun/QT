@@ -816,6 +816,8 @@ class PointTransformerV3(PointModule):
         pdnorm_adaptive=False,
         pdnorm_affine=True,
         pdnorm_conditions=("ScanNet", "S3DIS", "Structured3D"),
+
+        head_mlp_channels=[512, 256, 128],
     ):
         super().__init__()
         self.num_stages = len(enc_depths)
@@ -862,7 +864,7 @@ class PointTransformerV3(PointModule):
         self.embedding = Embedding(
             in_channels=in_channels,
             embed_channels=enc_channels[0],
-            norm_layer=bn_layer,
+            norm_layer=ln_layer, #bn_layer,
             act_layer=act_layer,
         )
 
@@ -882,7 +884,7 @@ class PointTransformerV3(PointModule):
                         in_channels=enc_channels[s - 1],
                         out_channels=enc_channels[s],
                         stride=stride[s - 1],
-                        norm_layer=bn_layer,
+                        norm_layer=ln_layer,#bn_layer,
                         act_layer=act_layer,
                     ),
                     name="down",
@@ -964,12 +966,16 @@ class PointTransformerV3(PointModule):
                 self.dec.add(module=dec, name=f"dec{s}")
 
 
-        final_dim = enc_channels[-1]
-        self.cls_head = nn.Sequential(
-            nn.Linear(final_dim, final_dim //2),
-            nn.GELU(),
-            nn.Linear(final_dim//2, 1)
-        )
+        assert enc_channels[-1] == head_mlp_channels[0]
+        head_layers = []
+        for i in range(len(head_mlp_channels) - 1):
+            head_layers.append(
+                nn.Linear(head_mlp_channels[i],head_mlp_channels[i+1])
+            )
+            head_layers.append(nn.GELU())
+        head_layers.append(nn.Linear(head_mlp_channels[-1], 1))
+
+        self.cls_head = nn.Sequential(*head_layers)
 
     def forward(self, data_dict):
         """
@@ -994,8 +1000,7 @@ class PointTransformerV3(PointModule):
         # cls mode
         feats = point.feat
         batch_idx = point.batch
-        # 배치별 global average pooling: [batch_size, C]
+        
         pooled = torch_scatter.scatter_mean(feats, batch_idx, dim=0)
-        # MLP 헤드를 통과시켜 [batch_size, 1] → [batch_size]
         logits = self.cls_head(pooled).squeeze(-1)
         return logits

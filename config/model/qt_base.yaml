@@ -30,3 +30,5 @@ pdnorm_decouple: true
 pdnorm_adaptive: false
 pdnorm_affine: true
 pdnorm_conditions: ["ScanNet", "S3DIS", "Structured3D"]
+
+head_mlp_channels: [512, 256, 128]

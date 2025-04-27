@@ -18,3 +18,4 @@ wandb
 omegaconf
 lightning
 trimesh
+transformers

@@ -1,7 +1,16 @@
 _target_: qt.data.ObjaverseDataModule
 
-root_dir: /workspace/dataset/objaverse_pcs_12500
+root_dir: /workspace/dataset/objaverse_pcs_12500_even
 criterion: preference
-batch_size: 2
+batch_size: 8
 num_workers: 4
-eval_batch_size: 2
+eval_batch_size: 8
+
+# point 수 6만개로 낮추기
+# grid_size 낮추기
+# flash attn 돌리기
+
+# batch size 
+# gradient accumulation
+# layer norm 으로 돌려보기 
+# optimizer&scheduler

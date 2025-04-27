@@ -1,13 +1,18 @@
 _target_: qt.solvers.Ptv3Solver
 
-lr: 0.001
+epochs: 300
+lr: 5e-4
 weight_decay: 0.01
 block_lr_scale: 0.0001
 
 scheduler_config: 
-  type: OneCycleLR
-  max_lr: 0.001 #[0.001, 0.0001]
-  pct_start: 0.05
-  anneal_strategy: "cos"
-  div_factor: 10.0
-  final_div_factor: 1000.0
+  type: CosineAnnealingLR
+  eta_min: 1e-6
+  T_max: 300
+  warm_up: 0.05
+  # type: OneCycleLR
+  # max_lr: 0.001 #[0.001, 0.0001]
+  # pct_start: 0.05
+  # anneal_strategy: "cos"
+  # div_factor: 10.0
+  # final_div_factor: 1000.0
