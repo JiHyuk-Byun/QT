@@ -14,7 +14,6 @@ docker:
 
 assets:
   - name: secrets
-  - name: pretrained
   - name: cache
     remote: false
 
