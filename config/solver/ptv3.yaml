@@ -1,7 +1,7 @@
 _target_: qt.solvers.Ptv3Solver
 
 epochs: 300
-lr: 5e-4
+lr: 1e-3
 weight_decay: 0.01
 block_lr_scale: 0.0001
 

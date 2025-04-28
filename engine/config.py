@@ -66,6 +66,7 @@ def instantiate(cfg: Union[DictConfig, dict],
     try:
         return target(**params_dict)
     except Exception as e:
+        print(e)
         error_name = e.__class__.__name__ if e is not None else ''
         message = f'({target.__name__}) {error_name}: {e.args[0]}'
         raise Exception(message)

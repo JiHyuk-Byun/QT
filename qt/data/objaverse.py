@@ -49,7 +49,7 @@ class ObjaverseDataset(Dataset):
                  split: str,
                  augments: Dict[str, dict],
 
-                 grid_size: int = 0.01,
+                 grid_size: int = 0.02,
                  hash_type: str = 'fnv',
                  return_grid_coord: bool = True,
 
@@ -75,7 +75,11 @@ class ObjaverseDataset(Dataset):
         # after collect, e.g. key: [coord, grid_coord, 'mos', 'offset', 'feat'(which is concatnated)] 
     
     def _compose(self, augments: Dict[str, dict]):
+        
         transform_fns = []
+        if augments == None:
+            return transform_fns
+
         utils = importlib.import_module('qt.data.utils')
         for fn_name, args in augments.items():
             if hasattr(utils, fn_name):
