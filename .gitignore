@@ -4,3 +4,13 @@ __pycache__/
 
 .idea
 .vscode
+
+##### CIPRUN ignores #####
+/.ciprun/*
+!/.ciprun/version
+/ref
+/secrets
+/pretrained
+/cache
+/datasets
+/logs
