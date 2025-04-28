@@ -1,5 +1,3 @@
-
-
 import random
 from collections.abc import Mapping, Sequence
 import numpy as np
@@ -18,6 +16,7 @@ CRITERIA = {
     "artifact": 4,
     "preference": 5
 }
+
 
 class QA3DBaseDataModule(LightningDataModule, ABC):
 
@@ -40,22 +39,27 @@ class QA3DBaseDataModule(LightningDataModule, ABC):
 
     def setup(self, stage=None):
         pass
-    
+
+    def enable_debug_mode(self):
+        self.batch_size = 1
+        self.eval_batch_size = 1
+        self.num_workers = 0
+
     def train_dataloader(self):
         dataset = self._get_dataset(is_train=True)
         return DataLoader(dataset, batch_size=self.batch_size, num_workers=self.num_workers,
                           collate_fn=self._collate_fn)
-    
+
     def val_dataloader(self):
         batch_size = self.eval_batch_size if self.eval_batch_size > 0 else self.batch_size
         dataset = self._get_dataset(is_train=False)
         return DataLoader(dataset, batch_size=batch_size, num_workers=self.num_workers,
                           collate_fn=self._collate_fn)
-    
+
     @abstractmethod
     def _get_dataset(self, is_train: bool = True):
         pass
-    
+
     def _collate_fn(self, batch):
         """
         collate function for point cloud which support dict and list,
@@ -92,7 +96,6 @@ class QA3DBaseDataModule(LightningDataModule, ABC):
         else:
             return default_collate(batch)
 
-
     def _point_collate_fn(self, batch, mix_prob=0):
         assert isinstance(
             batch[0], Mapping
@@ -105,10 +108,10 @@ class QA3DBaseDataModule(LightningDataModule, ABC):
                 num_instance = 0
                 for i in range(len(offset)):
                     if i % 2 == 0:
-                        num_instance = max(batch["instance"][start : offset[i]])
+                        num_instance = max(batch["instance"][start: offset[i]])
                     if i % 2 != 0:
-                        mask = batch["instance"][start : offset[i]] != -1
-                        batch["instance"][start : offset[i]] += num_instance * mask
+                        mask = batch["instance"][start: offset[i]] != -1
+                        batch["instance"][start: offset[i]] += num_instance * mask
                     start = offset[i]
             if "offset" in batch.keys():
                 batch["offset"] = torch.cat(

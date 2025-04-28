@@ -1,0 +1,25 @@
+name: ptv3-qa
+
+versioning:
+  tracks:
+    - qt/
+
+adapter: ciprun_adapter.CIPRUNAdapter
+defaults:
+  gpu: "n=4"
+
+docker:
+  image: 'ciplab/join_qa:${docker_version}'
+  container_name: join_gpu${gpu}_qa
+
+assets:
+  - name: secrets
+  - name: cache
+    remote: false
+
+outputs:
+  root_dir: logs
+
+datasets:
+  root_dir: datasets
+  zip: false

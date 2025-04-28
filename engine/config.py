@@ -6,7 +6,6 @@ import functools
 from os import path
 
 from omegaconf import OmegaConf, DictConfig
-from torch import candidate
 
 RESERVED_KEY_BASE = '_base_'
 RESERVED_KEY_TARGET = '_target_'
