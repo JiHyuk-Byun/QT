@@ -11,7 +11,7 @@ import engine
 # Train + evaluation for every evaluation_freq
 
 parser = ArgumentParser()
-parser.add_argument('--config', '-c', type=str)
+parser.add_argument('--config', '-c', type=str, required=True)
 parser.add_argument('--name', '-n', type=str, help='Name of the experiment')
 parser.add_argument('--debug', '-d', action='store_true', default=False, help='debug mode (for sanity check)')
 parser.add_argument('--gpus', '-g', default='-1', help='GPU to use (num. GPU or gpu ids, follow pytorch-lightning convention). e.g., "-1" (all), "2" (2 GPU), "0,1" (GPU id 0, 1), "[0]" (GPU id 0)')

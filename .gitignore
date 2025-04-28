@@ -1,3 +1,6 @@
 secrets/
 logs/
 __pycache__/
+
+.idea
+.vscode
