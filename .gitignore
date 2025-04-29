@@ -1,5 +1,6 @@
 secrets/
 logs/
+lightning_logs/
 __pycache__/
 
 .idea

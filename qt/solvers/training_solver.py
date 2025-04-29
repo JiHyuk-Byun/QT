@@ -6,11 +6,10 @@ from torch.optim import AdamW
 from torch.optim.lr_scheduler import OneCycleLR, CosineAnnealingLR, StepLR
 import numpy as np
 from transformers import get_cosine_schedule_with_warmup
-from torchmetrics.regression import PearsonCorrCoef, SpearmanCorrCoef, KendallRankCorrCoef
 
 from qt.data import ObjaverseDataModule
 from .base import BaseSolver
-from qt.metrics import PLCC, SROCC, KROCC, RMSE
+
 
 class Ptv3Solver(BaseSolver):
 
@@ -38,10 +37,7 @@ class Ptv3Solver(BaseSolver):
         self.scheduler_config = scheduler_config
         self.steps_per_epoch = len(self.dm.train_dataloader())
         self.loss_fn = nn.SmoothL1Loss()
-        self.plcc_metric = PearsonCorrCoef() #PLCC()
-        self.srocc_metric = SpearmanCorrCoef() #SROCC()
-        self.krocc_metric = KendallRankCorrCoef(variant='b')#KROCC()
-        self.rmse_metric = RMSE()
+
 
         self.save_ckpt_freq = save_ckpt_freq
         
@@ -116,10 +112,7 @@ class Ptv3Solver(BaseSolver):
         #     ckpt_path = osp.join(self.out_dir, f'epoch-{epoch+1:03d}.ckpt')
         #     self.trainer.save_checkpoint(ckpt_path)
         #     print(f'Save checkpoint: {ckpt_path}')
-    
-    @torch.no_grad()
-    def _min_max_normalize(self, mos_array):
-        return (mos_array - mos_array.min()) / (mos_array.max() - mos_array.min()) * 100
+
 
     def _get_scheduler(self, optimizer, scheduler_config, steps_per_epoch=None):
         scheduler_type = scheduler_config["type"]

@@ -5,9 +5,10 @@ from typing import List
 import torch
 from lightning.pytorch import LightningModule, Callback
 from torchmetrics import Metric
+from torchmetrics.regression import PearsonCorrCoef, SpearmanCorrCoef, KendallRankCorrCoef
 
 import engine
-
+from qt.metrics import PLCC, SROCC, KROCC, RMSE
 
 class BaseSolver(LightningModule):
 
@@ -20,6 +21,11 @@ class BaseSolver(LightningModule):
         self.checkpoint_epoch = -1
         self.out_dir = engine.to_experiment_dir('outputs')
         os.makedirs(self.out_dir, exist_ok=True)
+        
+        self.plcc_metric = PearsonCorrCoef() #PLCC()
+        self.srocc_metric = SpearmanCorrCoef() #SROCC()
+        self.krocc_metric = KendallRankCorrCoef(variant='b')#KROCC()
+        self.rmse_metric = RMSE()
 
     def configure_callbacks(self):
         return self._additional_callbacks
@@ -58,7 +64,11 @@ class BaseSolver(LightningModule):
 
     def reset_parameters(self):
         pass
-
+    
+    @torch.no_grad()
+    def _min_max_normalize(self, mos_array):
+        return (mos_array - mos_array.min()) / (mos_array.max() - mos_array.min()) * 100
+    
 class _DefaultTaskCallback(Callback):
     def on_sanity_check_end(self, trainer, solver):
         if not isinstance(solver, BaseSolver):

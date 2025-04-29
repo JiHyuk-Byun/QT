@@ -46,9 +46,9 @@ class EvaluationSolver(BaseSolver):
         krocc = self.krocc_metric.compute()
         rmse = self.rmse_metric.compute()
 
-        result_str = f"PLCC: {plcc}, SROCC: {srocc}, KROCC: {krocc}, RMSE: {rmse}"
+        result_str = f"[{self.dm.criterion}] PLCC: {plcc}, SROCC: {srocc}, KROCC: {krocc}, RMSE: {rmse}"
         print(result_str)
-        out_path = osp.join(self.out_dir, f'eval_results.txt')
+        out_path = osp.join(self.out_dir, f'eval_results_{self.dm.criterion}.txt')
         
         with open(out_path, 'w') as f:
             f.write(result_str)

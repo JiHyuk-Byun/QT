@@ -1,2 +1,0 @@
-_base_: shapenet
-subsample: [1, 4]
