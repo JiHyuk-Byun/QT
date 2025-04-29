@@ -5,6 +5,11 @@ lr: 1e-3
 weight_decay: 0.01
 block_lr_scale: 0.0001
 
+l1_w: 1
+rank_w: 1
+hard_thred: 5
+use_margin: true
+
 scheduler_config: 
   type: CosineAnnealingLR
   eta_min: 1e-6
