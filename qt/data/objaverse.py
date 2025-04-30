@@ -93,7 +93,7 @@ class ObjaverseDataset(Dataset):
         return len(self.files)
     
     def __getitem__(self, idx):
-        file_path = self.files[idx][0]
+        file_path = osp.join(self.root_dir, self.files[idx][0])
         MOSlabels = self.files[idx][1:] # geometry, texture, material, plausibility, artifact, preference
         data = np.load(file_path, allow_pickle=True).item()
         

@@ -1,10 +1,10 @@
 _target_: qt.data.ObjaverseDataModule
 
-root_dir: /home/quswlgur123/quswlgur123/datasets/objaverse_sub_n10k/objaverse_pcs_12500_even
+root_dir: /home/quswlgur123/quswlgur123/datasets/objaverse_full
 criterion: preference
-batch_size: 8
+batch_size: 4
 num_workers: 4
-eval_batch_size: 8
+eval_batch_size: 4
 
 # point 수 6만개로 낮추기
 # grid_size 낮추기

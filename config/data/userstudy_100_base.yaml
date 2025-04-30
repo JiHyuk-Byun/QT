@@ -3,5 +3,5 @@ root_dir: /workspace/dataset/objaverse_pcs_userstudy_even
 
 criterion: preference # geometry, texture, material, plausibility, artifacts, preference
 num_workers: 4 
-batch_size: 8
-eval_batch_size: 8
+batch_size: 4
+eval_batch_size: 4
