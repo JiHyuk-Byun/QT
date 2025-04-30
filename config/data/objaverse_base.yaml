@@ -1,6 +1,6 @@
 _target_: qt.data.ObjaverseDataModule
 
-root_dir: /workspace/dataset/objaverse_pcs_12500_even
+root_dir: /home/quswlgur123/quswlgur123/datasets/objaverse_sub_n10k/objaverse_pcs_12500_even
 criterion: preference
 batch_size: 8
 num_workers: 4
