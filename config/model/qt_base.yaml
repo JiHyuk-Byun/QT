@@ -3,8 +3,8 @@ _target_: qt.models.PointTransformerV3
 in_channels: 9
 order: ["z", "z-trans", "hilbert", "hilbert-trans"]
 stride: [2, 2, 2, 2]
-enc_depths: [2, 2, 2, 3, 1] #[2, 2, 2, 6, 2]
-enc_channels: [32, 64, 128, 192, 256] #[32, 64, 128, 256, 512]
+enc_depths: [2, 2, 2, 6, 2] #[2, 2, 2, 6, 2]
+enc_channels: [32, 64, 128, 256, 512] #[32, 64, 128, 256, 512]
 enc_num_head: [2, 4, 8, 16, 32]
 enc_patch_size: [1024, 1024, 1024, 1024, 1024]
 dec_depths: [2, 2, 2, 2]
