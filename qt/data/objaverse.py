@@ -18,6 +18,7 @@ CRITERIA = {
     "preference": 5
 }
 
+
 class ObjaverseDataModule(QA3DBaseDataModule):
 
     def __init__(self, 
