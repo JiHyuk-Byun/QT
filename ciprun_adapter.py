@@ -4,9 +4,9 @@ class CIPRUNAdapter:
         super().__init__()
         pass
 
-    def on_sanity_check(self, ctx, command):
-        command.append('-d')
-        return command
+#    def on_sanity_check(self, ctx, command):
+#        command.append('-d')
+#        return command
 
     def get_output_ignores(self):
         return [
