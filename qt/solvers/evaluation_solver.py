@@ -8,6 +8,7 @@ import engine
 from .base import BaseSolver
 from qt.data import ObjaverseDataModule
 
+
 class EvaluationSolver(BaseSolver):
 
     def __init__(self, dm: ObjaverseDataModule, solver: BaseSolver):
