@@ -1,10 +1,10 @@
 _base_: _train_base
 
 data:
-  _base_: data/objaverse_full_ai_center
+  _base_: data/objaverse_sub10k
 
 model:
-  _base_: model/qt_objaverse_full
+  _base_: model/qt_multiscale
 
 solver:
   _base_: solver/ptv3_base
