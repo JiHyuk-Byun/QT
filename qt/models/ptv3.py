@@ -1036,9 +1036,9 @@ class PointTransformerV3(PointModule):
 
         if self.multi_scale:
             intermediate_feats = []
-            for k, module in self.enc._modules.items():# range(self.num_stages):
-                point = forward_module(module, point)
-                point_pooled = torch_scatter.scatter_mean(point.feat, point.batch, dim=0)
+            for s in range(self.num_stages):
+                point = forward_module(self.enc[s], point)
+                point_pooled = torch_scatter.scatter_mean(point.feat.clone(), point.batch.clone(), dim=0)
                 
                 intermediate_feats.append(point_pooled)
 
