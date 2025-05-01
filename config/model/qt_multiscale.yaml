@@ -1,0 +1,6 @@
+_base_: qt_objaverse_sub10k
+
+in_channels: 9
+
+multi_scale: true
+head_mlp_channels: [672, 256, 128]

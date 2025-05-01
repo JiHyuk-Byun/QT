@@ -817,6 +817,7 @@ class PointTransformerV3(PointModule):
         pdnorm_affine=True,
         pdnorm_conditions=("ScanNet", "S3DIS", "Structured3D"),
 
+        multi_scale= True,
         head_mlp_channels=[512, 256, 128],
     ):
         super().__init__()
@@ -889,7 +890,7 @@ class PointTransformerV3(PointModule):
                     ),
                     name="down",
                 )
-            for i in range(enc_depths[s]):
+            for i in range(enc_depths[s]): # block
                 enc.add(
                     Block(
                         channels=enc_channels[s],
@@ -965,8 +966,11 @@ class PointTransformerV3(PointModule):
                     )
                 self.dec.add(module=dec, name=f"dec{s}")
 
+        if self.multi_scale:
+            assert head_mlp_channels[0] == sum(enc_channels)
+        else:
+            assert enc_channels[-1] == head_mlp_channels[0]
 
-        assert enc_channels[-1] == head_mlp_channels[0]
         head_layers = []
         for i in range(len(head_mlp_channels) - 1):
             head_layers.append(
@@ -990,17 +994,22 @@ class PointTransformerV3(PointModule):
         point.sparsify()
 
         point = self.embedding(point)
-        point = self.enc(point)
+
+        if self.multi_scale:
+            intermediate_feats = []
+            for s in range(self.num_stages):
+                point = self.enc[f'enc{s}'](point)
+                point_pooled = torch_scatter.scatter_mean(point.feat, point.batch, dim=0)
+                
+                intermediate_feats.append(point_pooled)
+
+            point_feat = torch.cat(intermediate_feats, dim=1)
+
+        else:
+            point = self.enc(point) 
+
+            point_feat = torch_scatter.scatter_mean(point.feat, point.batch, dim=0)
         
-        # seg mode
-        if not self.cls_mode:
-            point = self.dec(point)
-            return point
-        
-        # cls mode
-        feats = point.feat
-        batch_idx = point.batch
-        
-        pooled = torch_scatter.scatter_mean(feats, batch_idx, dim=0)
-        logits = self.cls_head(pooled).squeeze(-1)
+        # cls mode        
+        logits = self.cls_head(point_feat).squeeze(-1)
         return logits

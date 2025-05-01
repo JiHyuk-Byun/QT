@@ -1,4 +1,4 @@
-_target_: qt.models.PointTransformerV3
+_base_: qt_base
 
 in_channels: 9
 enc_depths: [2, 2, 2, 3, 1] #[2, 2, 2, 6, 2]
@@ -6,4 +6,5 @@ enc_channels: [32, 64, 128, 192, 256] #[32, 64, 128, 256, 512]
 enable_flash: false
 cls_mode: true
 
+multi_scale: false
 head_mlp_channels: [256, 128, 64]
