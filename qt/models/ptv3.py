@@ -966,6 +966,7 @@ class PointTransformerV3(PointModule):
                     )
                 self.dec.add(module=dec, name=f"dec{s}")
 
+
         if self.multi_scale:
             assert head_mlp_channels[0] == sum(enc_channels)
         else:
