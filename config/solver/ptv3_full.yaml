@@ -1,0 +1,23 @@
+_base_: ptv3_base
+
+epochs: 100
+lr: 5e-3
+weight_decay: 0.001
+block_lr_scale: 0.0001
+
+l1_w: 1
+rank_w: 0
+hard_thred: 5
+use_margin: true
+
+scheduler_config: 
+  type: CosineAnnealingLR
+  eta_min: 1e-6
+  T_max: 100
+  warm_up: 0.05
+  # type: OneCycleLR
+  # max_lr: 0.001 #[0.001, 0.0001]
+  # pct_start: 0.05
+  # anneal_strategy: "cos"
+  # div_factor: 10.0
+  # final_div_factor: 1000.0

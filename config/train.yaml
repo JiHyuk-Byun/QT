@@ -7,4 +7,4 @@ model:
   _base_: model/qt_objaverse_full
 
 solver:
-  _base_: solver/ptv3_base
+  _base_: solver/ptv3_full
