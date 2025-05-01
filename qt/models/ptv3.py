@@ -902,7 +902,7 @@ class PointTransformerV3(PointModule):
         self.embedding = Embedding(
             in_channels=in_channels,
             embed_channels=enc_channels[0],
-            norm_layer=ln_layer, #bn_layer,
+            norm_layer=bn_layer, #ln_layer
             act_layer=act_layer,
         )
 
@@ -922,7 +922,7 @@ class PointTransformerV3(PointModule):
                         in_channels=enc_channels[s - 1],
                         out_channels=enc_channels[s],
                         stride=stride[s - 1],
-                        norm_layer=ln_layer,#bn_layer,
+                        norm_layer=bn_layer,#bn_layer,
                         act_layer=act_layer,
                     ),
                     name="down",

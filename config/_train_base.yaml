@@ -6,7 +6,7 @@ trainer:
   check_val_every_n_epoch: 4
   log_every_n_steps: 100
   precision: 32 #16-mixed
-  accumulate_grad_batches: 16
+  accumulate_grad_batches: 4
   
 wandb:
   secret_path: secrets/wandb.yaml
