@@ -1,5 +1,5 @@
 _base_: objaverse_base
-root_dir: datasets/objaverse_pcs_userstudy_even
+root_dir: datasets/objaverse_sub_n10k/objaverse_pcs_12500_even
 batch_size: 16
 eval_batch_size: 16
 
