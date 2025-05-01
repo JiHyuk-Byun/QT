@@ -4,6 +4,7 @@ ENV TORCH_CUDA_ARCH_LIST="6.1;7.0;7.5;8.0;8.6"
 ENV LANG=C.UTF-8
 ENV LC_ALL=C.UTF-8
 
+RUN chmod 777 /tmp
 RUN apt update
 RUN DEBIAN_FRONTEND="noninteractive" apt install software-properties-common libopencv-dev git -y
 RUN add-apt-repository ppa:deadsnakes/ppa
@@ -17,5 +18,8 @@ RUN pip3 install torch==2.1.0 torchvision==0.16.0 torchaudio==2.1.0 --index-url 
 RUN mkdir /root/external
 ADD requirements.txt /root/external/
 RUN pip3 install -r /root/external/requirements.txt
+RUN FORCE_CUDA=1 pip3 install --no-cache-dir --upgrade torch-geometric torch-scatter torch-sparse torch-cluster -f http://data.pyg.org/whl/torch-2.1.0+cu118.html
+
+RUN pip3 install flash-attn==2.1.0 --no-build-isolation
 
 WORKDIR /workspace

@@ -1,0 +1,5 @@
+_base_: objaverse_base
+root_dir: /home/quswlgur123/users/jhbyun/ptv3-qa/shared/datasets/objaverse_full
+batch_size: 4
+eval_batch_size: 4
+

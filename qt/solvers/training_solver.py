@@ -73,11 +73,14 @@ class Ptv3Solver(BaseSolver):
         preds = outputs
         labels = batch['mos']
 
-        loss = self.loss_fn(preds, labels)
-        self.log('train/loss', loss.mean().item())#, on_step=True, on_epoch=True, prog_bar=True, logger=True)
+        l1_loss, rank_loss, total_loss = self.loss_fn(preds, labels)
+
+        self.log('train/l1_loss', l1_loss.mean().item())
+        self.log('train/rank_loss', rank_loss.mean().item())
+        self.log('train/loss', total_loss.mean().item())#, on_step=True, on_epoch=True, prog_bar=True, logger=True)
 
         return {
-            'loss': loss,
+            'loss': total_loss,
         }
     
     def validation_step(self, batch, batch_idx):
@@ -191,4 +194,5 @@ class L1RankLoss(torch.nn.Module):
         rank_loss = rank_loss.sum() / (masks_hard.sum() + 1e-08)
         loss_total = l1_loss + rank_loss * self.rank_w
 
-        return loss_total
+        
+        return l1_loss, rank_loss, loss_total

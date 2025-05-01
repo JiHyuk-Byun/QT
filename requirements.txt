@@ -79,10 +79,6 @@ termcolor==3.0.1
 timm==1.0.15
 tokenizers==0.21.1
 tomli==2.2.1
-torch-cluster==1.6.3
-torch-geometric==2.6.1
-torch-scatter==2.1.2
-torch-sparse==0.6.18
 torchaudio==2.1.0
 torchmetrics
 torchvision==0.16.0
