@@ -193,9 +193,9 @@ class L1RankLoss(torch.nn.Module):
             else:
                 rank_loss = masks_hard * torch.relu(- masks * (preds - preds_t))
             rank_loss = rank_loss.sum() / (masks_hard.sum() + 1e-08)
-
+        
         else:
-            rank_loss = 0
+            rank_loss = torch.tensor(0.)
 
         
         loss_total = l1_loss + rank_loss * self.rank_w
