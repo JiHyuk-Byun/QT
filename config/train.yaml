@@ -4,7 +4,7 @@ data:
   _base_: data/objaverse_sub10k
 
 model:
-  _base_: model/qt_multiscale
+  _base_: model/qt_objaverse_sub10k
 
 solver:
   _base_: solver/ptv3_base
