@@ -1,0 +1,6 @@
+_base_: objaverse_base
+root_dir: /home/quswlgur123/users/jhbyun/ptv3-qa/shared/datasets/objaverse_pcs_userstudy_even
+batch_size: 16
+eval_batch_size: 16
+
+grid_size: 0.01
