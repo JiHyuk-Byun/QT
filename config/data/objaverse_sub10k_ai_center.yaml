@@ -3,4 +3,5 @@ root_dir: /home/quswlgur123/users/jhbyun/ptv3-qa/shared/datasets/objaverse_pcs_u
 batch_size: 16
 eval_batch_size: 16
 
-grid_size: 0.01
+dataset_config:
+  grid_size: 0.01
