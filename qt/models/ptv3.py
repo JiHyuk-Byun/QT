@@ -817,6 +817,7 @@ class PointTransformerV3(PointModule):
         pdnorm_affine=True,
         pdnorm_conditions=("ScanNet", "S3DIS", "Structured3D"),
 
+        n_prediction = 1,
         multi_scale= True,
         head_mlp_channels=[512, 256, 128],
     ):
@@ -826,7 +827,8 @@ class PointTransformerV3(PointModule):
         self.cls_mode = cls_mode
         self.shuffle_orders = shuffle_orders
         self.multi_scale = multi_scale
-        
+        self.n_prediction = n_prediction
+
         assert self.num_stages == len(stride) + 1
         assert self.num_stages == len(enc_depths)
         assert self.num_stages == len(enc_channels)
@@ -978,7 +980,9 @@ class PointTransformerV3(PointModule):
                 nn.Linear(head_mlp_channels[i],head_mlp_channels[i+1])
             )
             head_layers.append(nn.GELU())
-        head_layers.append(nn.Linear(head_mlp_channels[-1], 1))
+
+
+        head_layers.append(nn.Linear(head_mlp_channels[-1], self.n_prediction))
 
         self.cls_head = nn.Sequential(*head_layers)
 
