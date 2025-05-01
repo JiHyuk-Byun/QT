@@ -1,4 +1,4 @@
 _base_: objaverse_base
-root_dir: /media/ssd1/users/jhbyun/ptv3-qa/shared/datasets/objaverse_pcs_12500_even
+root_dir: shared/datasets/objaverse_sub_n10k/objaverse_pcs_12500_even
 batch_size: 4
 eval_batch_size: 4
