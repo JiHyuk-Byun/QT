@@ -44,6 +44,32 @@ def offset2batch(offset):
 def batch2offset(batch):
     return torch.cumsum(batch.bincount(), dim=0).long()
 
+def forward_module(module, input):
+        # Point module
+    if isinstance(module, PointModule):
+        input = module(input)
+    # Spconv module
+    elif spconv.modules.is_spconv_module(module):
+        if isinstance(input, Point):
+            input.sparse_conv_feat = module(input.sparse_conv_feat)
+            input.feat = input.sparse_conv_feat.features
+        else:
+            input = module(input)
+    # PyTorch module
+    else:
+        if isinstance(input, Point):
+            input.feat = module(input.feat)
+            if "sparse_conv_feat" in input.keys():
+                input.sparse_conv_feat = input.sparse_conv_feat.replace_feature(
+                    input.feat
+                )
+        elif isinstance(input, spconv.SparseConvTensor):
+            if input.indices.shape[0] != 0:
+                input = input.replace_feature(module(input.features))
+        else:
+            input = module(input)
+    
+    return input
 
 class Point(Dict):
     """
@@ -231,29 +257,32 @@ class PointSequential(PointModule):
 
     def forward(self, input):
         for k, module in self._modules.items():
-            # Point module
-            if isinstance(module, PointModule):
-                input = module(input)
-            # Spconv module
-            elif spconv.modules.is_spconv_module(module):
-                if isinstance(input, Point):
-                    input.sparse_conv_feat = module(input.sparse_conv_feat)
-                    input.feat = input.sparse_conv_feat.features
-                else:
-                    input = module(input)
-            # PyTorch module
-            else:
-                if isinstance(input, Point):
-                    input.feat = module(input.feat)
-                    if "sparse_conv_feat" in input.keys():
-                        input.sparse_conv_feat = input.sparse_conv_feat.replace_feature(
-                            input.feat
-                        )
-                elif isinstance(input, spconv.SparseConvTensor):
-                    if input.indices.shape[0] != 0:
-                        input = input.replace_feature(module(input.features))
-                else:
-                    input = module(input)
+
+            input = forward_module(module, input)
+
+            # # Point module
+            # if isinstance(module, PointModule):
+            #     input = module(input)
+            # # Spconv module
+            # elif spconv.modules.is_spconv_module(module):
+            #     if isinstance(input, Point):
+            #         input.sparse_conv_feat = module(input.sparse_conv_feat)
+            #         input.feat = input.sparse_conv_feat.features
+            #     else:
+            #         input = module(input)
+            # # PyTorch module
+            # else:
+            #     if isinstance(input, Point):
+            #         input.feat = module(input.feat)
+            #         if "sparse_conv_feat" in input.keys():
+            #             input.sparse_conv_feat = input.sparse_conv_feat.replace_feature(
+            #                 input.feat
+            #             )
+            #     elif isinstance(input, spconv.SparseConvTensor):
+            #         if input.indices.shape[0] != 0:
+            #             input = input.replace_feature(module(input.features))
+            #     else:
+            #         input = module(input)
         return input
 
 
@@ -1008,7 +1037,7 @@ class PointTransformerV3(PointModule):
         if self.multi_scale:
             intermediate_feats = []
             for s in range(self.num_stages):
-                point = self.enc[s](point)
+                point = forward_module(self.enc[s], point)
                 point_pooled = torch_scatter.scatter_mean(point.feat, point.batch, dim=0)
                 
                 intermediate_feats.append(point_pooled)
