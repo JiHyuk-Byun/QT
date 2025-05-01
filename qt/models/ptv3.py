@@ -205,15 +205,20 @@ class PointSequential(PointModule):
             self.add_module(name, module)
 
     def __getitem__(self, idx):
-        if not (-len(self) <= idx < len(self)):
-            raise IndexError("index {} is out of range".format(idx))
-        if idx < 0:
-            idx += len(self)
-        it = iter(self._modules.values())
-        for i in range(idx):
-            next(it)
-        return next(it)
-
+        if isinstance(idx, str):
+            return self._modules[idx]
+        elif isinstance(idx, int):
+            if not (-len(self) <= idx < len(self)):
+                raise IndexError("index {} is out of range".format(idx))
+            if idx < 0:
+                idx += len(self)
+            it = iter(self._modules.values())
+            for i in range(idx):
+                next(it)
+            return next(it)
+        else:
+            raise TypeError(f"Unsupported index type: {type(idx)}")
+        
     def __len__(self):
         return len(self._modules)
 
@@ -1003,7 +1008,7 @@ class PointTransformerV3(PointModule):
         if self.multi_scale:
             intermediate_feats = []
             for s in range(self.num_stages):
-                point = self.enc[f'enc{s}'](point)
+                point = self.enc._modules[f'enc{s}'](point)
                 point_pooled = torch_scatter.scatter_mean(point.feat, point.batch, dim=0)
                 
                 intermediate_feats.append(point_pooled)
