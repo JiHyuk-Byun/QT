@@ -180,19 +180,24 @@ class L1RankLoss(torch.nn.Module):
         l1_loss = self.l1_loss(preds, gts) * self.l1_w
 
         # simple rank
-        n = len(preds)
-        preds = preds.unsqueeze(0).repeat(n, 1)
-        preds_t = preds.t()
-        img_label = gts.unsqueeze(0).repeat(n, 1)
-        img_label_t = img_label.t()
-        masks = torch.sign(img_label - img_label_t)
-        masks_hard = (torch.abs(img_label - img_label_t) < self.hard_thred) & (torch.abs(img_label - img_label_t) > 0)
-        if self.use_margin:
-            rank_loss = masks_hard * torch.relu(torch.abs(img_label - img_label_t) - masks * (preds - preds_t))
-        else:
-            rank_loss = masks_hard * torch.relu(- masks * (preds - preds_t))
-        rank_loss = rank_loss.sum() / (masks_hard.sum() + 1e-08)
-        loss_total = l1_loss + rank_loss * self.rank_w
+        if self.rank_w > 0:
+            n = len(preds)
+            preds = preds.unsqueeze(0).repeat(n, 1)
+            preds_t = preds.t()
+            img_label = gts.unsqueeze(0).repeat(n, 1)
+            img_label_t = img_label.t()
+            masks = torch.sign(img_label - img_label_t)
+            masks_hard = (torch.abs(img_label - img_label_t) < self.hard_thred) & (torch.abs(img_label - img_label_t) > 0)
+            if self.use_margin:
+                rank_loss = masks_hard * torch.relu(torch.abs(img_label - img_label_t) - masks * (preds - preds_t))
+            else:
+                rank_loss = masks_hard * torch.relu(- masks * (preds - preds_t))
+            rank_loss = rank_loss.sum() / (masks_hard.sum() + 1e-08)
 
+        else:
+            rank_loss = 0
+
+        
+        loss_total = l1_loss + rank_loss * self.rank_w
         
         return l1_loss, rank_loss, loss_total
