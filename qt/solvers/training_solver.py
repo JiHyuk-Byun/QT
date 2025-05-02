@@ -180,7 +180,9 @@ class L1RankLoss(torch.nn.Module):
     
     def update_weight(self, global_step):
         s = min(1.0, global_step / self.warmup_steps)
-        self.rank_w = self.rank_w_max * s
+        new_val = self.rank_w_max * s                     # float or tensor OK
+
+        self.rank_w.data.fill_(new_val)
     
     def forward(self, preds, gts, global_step = None):
 
