@@ -9,7 +9,6 @@ import lightning.pytorch as pl
 
 import engine
 
-
 parser = ArgumentParser()
 parser.add_argument('--config', '-c', type=str, required=True)
 parser.add_argument('--exp_name', '-en', type=str, help='Name of the experiment')
