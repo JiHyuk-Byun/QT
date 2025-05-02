@@ -15,7 +15,7 @@ class BaseSolver(LightningModule):
     def __init__(self):
         super().__init__()
 
-        self.total_epochs = None
+        #self.total_epochs = None
         self._best_score = -float('inf')
         self._additional_callbacks: List[Callback] = [_DefaultTaskCallback()]
         self._metrics = None
