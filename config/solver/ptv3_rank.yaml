@@ -5,7 +5,8 @@ weight_decay: 0.01
 block_lr_scale: 0.0001
 
 l1_w: 1
-rank_w: 1
+rank_w_max: 10
+warmup_steps: 5000
 hard_thred: 5
 use_margin: true
 
