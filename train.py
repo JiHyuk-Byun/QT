@@ -7,7 +7,7 @@ import lightning.pytorch as pl
 
 import engine
 
-# Train + evaluation for every evaluation_freq
+os.environ['NCCL_ASYNC_ERROR_HANDLING']=1
 
 parser = ArgumentParser()
 parser.add_argument('--config', '-c', type=str, required=True)

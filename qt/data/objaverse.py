@@ -1,6 +1,7 @@
 from os import path as osp
 from typing import Dict
 import importlib
+import io, time
 
 import torch
 from torch.utils.data import Dataset
@@ -18,6 +19,8 @@ CRITERIA = {
     "preference": 5
 }
 
+MAX_RETRY = 3  
+RETRY_SLEEP = 0.1 
 
 class ObjaverseDataModule(QA3DBaseDataModule):
 
@@ -106,33 +109,40 @@ class ObjaverseDataset(Dataset):
     def __len__(self):
         return len(self.files)
     
+
     def __getitem__(self, idx):
         file_path = osp.join(self.root_dir, self.files[idx][0])
-        MOSlabels = self.files[idx][1:] # geometry, texture, material, plausibility, artifact, preference
+        MOSlabels = self.files[idx][1:]
 
-        data = np.load(file_path, allow_pickle=True).item()
-        
-        data_dict={}
-        data_dict['coord'] = data['coord'].astype(np.float32)
-        data_dict['color'] = data['color'].astype(np.float32)
-        data_dict['normal'] = data['normal'].astype(np.float32)
-        #data_dict['roughness'] = data['roughness'].astype(np.float32)
-        #data_dict['metallic'] = data['metallic'].astype(np.float32)
-        data_dict['mos'] = torch.tensor([MOSlabels[self.criterion_idx]], dtype=torch.float32)
+        for attempt in range(MAX_RETRY):
+            try:
+                data = np.load(file_path, allow_pickle=True).item()
+                break                                
+            except Exception as e:
+                if attempt < MAX_RETRY - 1:
+                    time.sleep(RETRY_SLEEP)          
+                else:
 
-        # Coordinate normalize
+                    if (not torch.distributed.is_initialized()) \
+                       or torch.distributed.get_rank() == 0:
+                        print(f"[SKIP] idx={idx} path={file_path} "
+                              f"({type(e).__name__}: {e})")
+                    return None
+
+
+        data_dict = {
+            'coord' : data['coord'].astype(np.float32),
+            'color' : data['color'].astype(np.float32),
+            'normal': data['normal'].astype(np.float32),
+            'mos'   : torch.tensor([MOSlabels[self.criterion_idx]],
+                                   dtype=torch.float32),
+        }
+
         data_dict = pc_normalize(data_dict)
-        
-        # Augmentation
-        for augment_fn in self.augment_fns:
-            data_dict = augment_fn(data_dict)
-
-        # Voxelize
+        #Augmentation
+        for fn in self.augment_fns:
+            data_dict = fn(data_dict)
+        # Grid sampling
         data_dict = self.grid_sampler(data_dict)
-
         data_dict = to_tensor(shuffle_point(data_dict))
-        
-        data_dict = self.collect_keys(data_dict)
-        #[coord, grid_coord, 'mos', 'offset', 'feat'(which is concatnated)]
-        
-        return data_dict
+        return self.collect_keys(data_dict)

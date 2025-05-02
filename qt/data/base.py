@@ -53,13 +53,13 @@ class QA3DBaseDataModule(LightningDataModule, ABC):
     def train_dataloader(self):
         dataset = self._get_dataset(is_train=True)
         return DataLoader(dataset, batch_size=self.batch_size, num_workers=self.num_workers,
-                          collate_fn=self._collate_fn)
+                          collate_fn=self._collate_fn, drop_last=True, persistent_workers=False)
 
     def val_dataloader(self):
         batch_size = self.eval_batch_size if self.eval_batch_size > 0 else self.batch_size
         dataset = self._get_dataset(is_train=False)
         return DataLoader(dataset, batch_size=batch_size, num_workers=self.num_workers,
-                          collate_fn=self._collate_fn)
+                          collate_fn=self._collate_fn, drop_last=True, persistent_workers=False)
 
     @abstractmethod
     def _get_dataset(self, is_train: bool = True):
@@ -70,6 +70,11 @@ class QA3DBaseDataModule(LightningDataModule, ABC):
         collate function for point cloud which support dict and list,
         'coord' is necessary to determine 'offset'
         """
+
+        batch = [b for b in batch if b is not None]
+        if len(batch) == 0:
+            return None
+        
         if not isinstance(batch, Sequence):
             raise TypeError(f"{batch.dtype} is not supported.")
 
