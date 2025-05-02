@@ -853,7 +853,7 @@ class PointTransformerV3(PointModule):
 
         head_drop = 0.25,
         n_prediction = 1,
-        multi_scale= True,
+        multi_scale= False,
         head_mlp_channels=[512, 256, 128],
     ):
         super().__init__()
@@ -903,7 +903,7 @@ class PointTransformerV3(PointModule):
         self.embedding = Embedding(
             in_channels=in_channels,
             embed_channels=enc_channels[0],
-            norm_layer=bn_layer, #ln_layer
+            norm_layer=ln_layer, #bn_layer
             act_layer=act_layer,
         )
 
@@ -923,7 +923,7 @@ class PointTransformerV3(PointModule):
                         in_channels=enc_channels[s - 1],
                         out_channels=enc_channels[s],
                         stride=stride[s - 1],
-                        norm_layer=bn_layer,#bn_layer,
+                        norm_layer=ln_layer,#bn_layer,
                         act_layer=act_layer,
                     ),
                     name="down",
@@ -973,7 +973,7 @@ class PointTransformerV3(PointModule):
                         in_channels=dec_channels[s + 1],
                         skip_channels=enc_channels[s],
                         out_channels=dec_channels[s],
-                        norm_layer=bn_layer,
+                        norm_layer=ln_layer, #bn_layer
                         act_layer=act_layer,
                     ),
                     name="up",
@@ -1006,22 +1006,33 @@ class PointTransformerV3(PointModule):
 
         if self.multi_scale:
             assert head_mlp_channels[0] == sum(enc_channels)
+            head_layers = []
+        
+            head_layers.append(nn.LayerNorm(head_mlp_channels[0]))
+            for i in range(len(head_mlp_channels) - 1):
+                head_layers.append(
+                    nn.Linear(head_mlp_channels[i],head_mlp_channels[i+1])
+                )
+                head_layers.append(nn.GELU())
+                head_layers.append(nn.Dropout(head_drop))
+
+
+            head_layers.append(nn.Linear(head_mlp_channels[-1], self.n_prediction))
+        
         else:
             assert enc_channels[-1] == head_mlp_channels[0]
-
-
-        head_layers = []
-
-        head_layers.append(nn.LayerNorm(head_mlp_channels[0]))
-        for i in range(len(head_mlp_channels) - 1):
-            head_layers.append(
-                nn.Linear(head_mlp_channels[i],head_mlp_channels[i+1])
-            )
-            head_layers.append(nn.GELU())
-            head_layers.append(nn.Dropout(head_drop))
+            head_layers = []
+        
+            for i in range(len(head_mlp_channels) - 1):
+                head_layers.append(
+                    nn.Linear(head_mlp_channels[i],head_mlp_channels[i+1])
+                )
+                head_layers.append(nn.GELU())
 
 
         head_layers.append(nn.Linear(head_mlp_channels[-1], self.n_prediction))
+
+
 
         self.cls_head = nn.Sequential(*head_layers)
 

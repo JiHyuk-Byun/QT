@@ -69,10 +69,11 @@ class ObjaverseDataset(Dataset):
 
         assert split in ['train', 'test']
         self.split = split
-        self.split_path = train_split if split == 'train' else test_split
+        self.train_split = osp.join(root_dir, 'train_split.csv') if train_split is None else train_split
+        self.test_split = osp.join(root_dir, 'test_split.csv') if test_split is None else test_split
         
-        self.train_split = train_split
-        self.test_split = test_split
+        self.split_path = self.train_split if split == 'train' else self.test_split
+        
         self.criterion = criterion
         self.criterion_idx = CRITERIA[self.criterion]
         self.manual_seed = manual_seed
@@ -108,6 +109,7 @@ class ObjaverseDataset(Dataset):
     def __getitem__(self, idx):
         file_path = osp.join(self.root_dir, self.files[idx][0])
         MOSlabels = self.files[idx][1:] # geometry, texture, material, plausibility, artifact, preference
+
         data = np.load(file_path, allow_pickle=True).item()
         
         data_dict={}

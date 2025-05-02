@@ -72,7 +72,7 @@ class Ptv3Solver(BaseSolver):
         preds = outputs
         labels = batch['mos']
 
-        l1_loss, rank_loss, total_loss = self.loss_fn(preds, labels)
+        l1_loss, rank_loss, total_loss = self.loss_fn(preds, labels, self.global_step)
 
         self.log('train/l1_loss', l1_loss.mean().item())
         self.log('train/rank_loss', rank_loss.mean().item())
@@ -153,27 +153,31 @@ class Ptv3Solver(BaseSolver):
 
         else:
             raise ValueError(f"Unsupported scheduler type: {scheduler_type}")
-        
+
+            
 class L1RankLoss(torch.nn.Module):
-
-    def __init__(self, 
+    def __init__(self,
                  l1_w: float = 1,
+                 rank_w: float = None,          
                  rank_w_max: float = 10,
-                 warmup_steps: int = 5000,
+                 warmup_steps: int = 5_000,
+                 hard_thred: float = 1,
+                 use_margin: bool = False,
+                 **kwargs):                    
 
-                 hard_thred = 1,
-                 use_margin = False,):
-        
-        super(L1RankLoss, self).__init__()
+        super().__init__()
+
+        if rank_w is not None:
+            rank_w_max = rank_w
         self.l1_w = l1_w
         self.rank_w_max = rank_w_max
         self.warmup_steps = warmup_steps
         self.hard_thred = hard_thred
         self.use_margin = use_margin
+
         self.register_buffer("rank_w", torch.tensor(0.0))
-
         self.l1_loss = nn.SmoothL1Loss()
-
+    
     def update_weight(self, global_step):
         s = min(1.0, global_step / self.warmup_steps)
         self.rank_w = self.rank_w_max * s
