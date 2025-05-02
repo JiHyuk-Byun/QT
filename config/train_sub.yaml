@@ -1,0 +1,17 @@
+_base_: _train_base
+trainer:
+  max_epochs: 300
+  strategy: ddp
+  check_val_every_n_epoch: 4
+  log_every_n_steps: 100
+  precision: 32 #16-mixed
+  accumulate_grad_batches: 2
+
+data:
+  _base_: data/objaverse_sub10k
+
+model:
+  _base_: model/qt_multiscalerank_sub
+
+solver:
+  _base_: solver/ptv3_rank

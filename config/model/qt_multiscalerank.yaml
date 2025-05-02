@@ -1,7 +1,0 @@
-_base_: qt_objaverse_sub
-
-in_channels: 9
-
-head_drop: 0.25
-multi_scale: true
-head_mlp_channels: [672, 256, 128]
