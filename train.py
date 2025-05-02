@@ -1,13 +1,14 @@
+
 import os
 from os import path as osp
 from argparse import ArgumentParser
+os.environ['NCCL_ASYNC_ERROR_HANDLING']='1'
 
 from omegaconf import OmegaConf
 import lightning.pytorch as pl
 
 import engine
 
-os.environ['NCCL_ASYNC_ERROR_HANDLING']='1'
 
 parser = ArgumentParser()
 parser.add_argument('--config', '-c', type=str, required=True)
