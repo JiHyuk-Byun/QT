@@ -17,7 +17,6 @@ class Ptv3Solver(BaseSolver):
                  
                  ## optimizer, scheduler params
                  scheduler_config: dict,
-                 epochs: int = 300,
                  lr: float = 1e-4,
                  weight_decay: float = 0.0,
                  block_lr_scale: float = 0.1,
@@ -36,8 +35,6 @@ class Ptv3Solver(BaseSolver):
 
         self.dm = dm
         self.model = model
-
-        self.epochs = epochs
         self.lr = lr
         self.weight_decay = weight_decay
 #        self.warm_up_epochs = warm_up_epochs
@@ -50,6 +47,7 @@ class Ptv3Solver(BaseSolver):
         self.save_ckpt_freq = save_ckpt_freq
         
     def configure_optimizers(self):
+
         optimizer = [AdamW(self.parameters(), lr=self.lr, weight_decay=self.weight_decay)]
         
         scheduler = [self._get_scheduler(optimizer[0], self.scheduler_config, steps_per_epoch=self.steps_per_epoch)]
@@ -136,9 +134,9 @@ class Ptv3Solver(BaseSolver):
 
         elif scheduler_type == "CosineAnnealingLR":
             warm_up = kwargs.pop("warm_up", 0) 
-            kwargs['T_max'] = self.epochs
+            kwargs['T_max'] = self.total_epochs
             if warm_up > 0:
-                num_training_steps = steps_per_epoch * self.epochs
+                num_training_steps = steps_per_epoch * self.total_epochs
                 num_warmup_steps = int(num_training_steps * warm_up)
                
                 return get_cosine_schedule_with_warmup(

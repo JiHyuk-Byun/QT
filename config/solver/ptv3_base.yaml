@@ -1,6 +1,5 @@
 _target_: qt.solvers.Ptv3Solver
 
-epochs: 300
 lr: 1e-3
 weight_decay: 0.01
 block_lr_scale: 0.0001
@@ -13,7 +12,6 @@ use_margin: true
 scheduler_config: 
   type: CosineAnnealingLR
   eta_min: 1e-6
-  T_max: 300
   warm_up: 0.05
   # type: OneCycleLR
   # max_lr: 0.001 #[0.001, 0.0001]

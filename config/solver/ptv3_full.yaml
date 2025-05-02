@@ -1,6 +1,5 @@
 _base_: ptv3_base
 
-epochs: 100
 lr: 5e-3
 weight_decay: 0.001
 block_lr_scale: 0.0001
@@ -13,7 +12,6 @@ use_margin: true
 scheduler_config: 
   type: CosineAnnealingLR
   eta_min: 1e-6
-  T_max: 100
   warm_up: 0.05
   # type: OneCycleLR
   # max_lr: 0.001 #[0.001, 0.0001]

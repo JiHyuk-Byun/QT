@@ -15,6 +15,7 @@ class BaseSolver(LightningModule):
     def __init__(self):
         super().__init__()
 
+        self.total_epochs = None
         self._best_score = -float('inf')
         self._additional_callbacks: List[Callback] = [_DefaultTaskCallback()]
         self._metrics = None
@@ -36,6 +37,9 @@ class BaseSolver(LightningModule):
     @property
     def best_score(self):
         return self._best_score
+    
+    def on_fit_start(self):
+        self.total_epochs = self.trainer.max_epochs
     
     def track_score(self, score: any):
         if score > self._best_score:

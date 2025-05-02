@@ -1,7 +1,7 @@
 _base_: objaverse_base
 root_dir: /media/ssd1/users/jhbyun/ptv3-qa/shared/datasets/objaverse_pcs_12500_even/
-batch_size: 16
-eval_batch_size: 16
+batch_size: 32
+eval_batch_size: 32
 
 dataset_config:
   manual_seed: 123456
@@ -18,7 +18,7 @@ dataset_config:
     RandomShift:
       shift: [[-0.2, 0.2], [-0.2, 0.2], [-0.2, 0.2]]
 
-  grid_size: 0.01
+  grid_size: 0.02
   hash_type: 'fnv'
   return_grid_coord: true
   
