@@ -154,24 +154,33 @@ class Ptv3Solver(BaseSolver):
             raise ValueError(f"Unsupported scheduler type: {scheduler_type}")
         
 class L1RankLoss(torch.nn.Module):
-    """
-    L1 loss + Rank loss
-    """
 
     def __init__(self, 
                  l1_w: float = 1,
-                 rank_w: float = 1,
+                 rank_w_max: float = 10,
+                 warmup_steps: int = 5000,
                  hard_thred = 1,
                  use_margin = False,):
+        
         super(L1RankLoss, self).__init__()
         self.l1_w = l1_w
-        self.rank_w = rank_w
+        self.rank_w_max = rank_w_max
+        self.warmup_steps = warmup_steps
         self.hard_thred = hard_thred
         self.use_margin = use_margin
+        self.register_buffer("rank_w", torch.tensor(0.0))
 
         self.l1_loss = nn.SmoothL1Loss()
 
-    def forward(self, preds, gts):
+    def update_weight(self, global_step):
+        s = min(1.0, global_step / self.warmup_steps)
+        self.rank_w = self.rank_w_max * s
+    
+    def forward(self, preds, gts, global_step = None):
+
+        if global_step is not None:
+            self.update_weight(global_step)
+            
         preds = preds.view(-1)
         gts = gts.view(-1)
         # l1 loss

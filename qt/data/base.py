@@ -23,6 +23,8 @@ class QA3DBaseDataModule(LightningDataModule, ABC):
     def __init__(self,
                  name: str,
                  root_dir: str,
+                 train_split: str,
+                 test_split: str,
                  criterion: str,
                  batch_size: int,
                  num_workers: int,
@@ -31,6 +33,9 @@ class QA3DBaseDataModule(LightningDataModule, ABC):
 
         self.name = name
         self.root_dir = root_dir
+        self.train_split = train_split
+        self.test_split = test_split
+        
         self.criterion = criterion
         self.criterion_idx = CRITERIA[self.criterion]
         self.batch_size = batch_size

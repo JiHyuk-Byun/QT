@@ -23,6 +23,8 @@ class ObjaverseDataModule(QA3DBaseDataModule):
 
     def __init__(self, 
                  root_dir: str,
+                 train_split: str,
+                 test_split: str,
                  criterion: str,
                  batch_size: int,
                  num_workers: int,
@@ -31,6 +33,8 @@ class ObjaverseDataModule(QA3DBaseDataModule):
                  ):
         super().__init__('objaverse',
                          root_dir,
+                         train_split,
+                         test_split,
                          criterion,
                          batch_size,
                          num_workers,
@@ -40,12 +44,14 @@ class ObjaverseDataModule(QA3DBaseDataModule):
     
     def _get_dataset(self, is_train: bool = True):
         split = 'train' if is_train else 'test'
-        return ObjaverseDataset(**self.dataset_config, root_dir=self.root_dir, criterion=self.criterion, split=split)
+        return ObjaverseDataset(**self.dataset_config, root_dir=self.root_dir, train_split=self.train_split, test_split=self.test_split, criterion=self.criterion, split=split)
     
 class ObjaverseDataset(Dataset):
 
     def __init__(self, 
                  root_dir: str, 
+                 train_split: str,
+                 test_split: str,
                  criterion: str,
                  split: str,
                  augments: Dict[str, dict],
@@ -60,12 +66,18 @@ class ObjaverseDataset(Dataset):
         
         super().__init__()
         self.root_dir = root_dir
+
+        assert split in ['train', 'test']
+        self.split = split
+        self.split_path = train_split if split == 'train' else test_split
+        
+        self.train_split = train_split
+        self.test_split = test_split
         self.criterion = criterion
         self.criterion_idx = CRITERIA[self.criterion]
-        self.split = split
         self.manual_seed = manual_seed
 
-        self.files = read_csv(osp.join(self.root_dir, f'{self.split}_split.csv'))
+        self.files = read_csv(self.split_path)
         
         #Augmentation
         self.augment_fns = self._compose(augments)

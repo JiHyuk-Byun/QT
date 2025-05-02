@@ -1,7 +1,7 @@
 _base_: objaverse_base
 root_dir: datasets/pcs_mp/
-train_split: datasets/objaverse_comparable_10000/train_split.csv
-test_split: datasets/objaverse_comparable_10000/test_split.csv
+train_split: datasets/objaverse_comparable_30000/train_split.csv
+test_split: datasets/objaverse_comparable_30000/test_split.csv
 batch_size: 8
 eval_batch_size: 8
 
