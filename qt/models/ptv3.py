@@ -851,6 +851,7 @@ class PointTransformerV3(PointModule):
         pdnorm_affine=True,
         pdnorm_conditions=("ScanNet", "S3DIS", "Structured3D"),
 
+        head_drop = 0.25,
         n_prediction = 1,
         multi_scale= True,
         head_mlp_channels=[512, 256, 128],
@@ -1008,12 +1009,16 @@ class PointTransformerV3(PointModule):
         else:
             assert enc_channels[-1] == head_mlp_channels[0]
 
+
         head_layers = []
+
+        head_layers.append(nn.LayerNorm(head_mlp_channels[0]))
         for i in range(len(head_mlp_channels) - 1):
             head_layers.append(
                 nn.Linear(head_mlp_channels[i],head_mlp_channels[i+1])
             )
             head_layers.append(nn.GELU())
+            head_layers.append(nn.Dropout(head_drop))
 
 
         head_layers.append(nn.Linear(head_mlp_channels[-1], self.n_prediction))
@@ -1043,7 +1048,7 @@ class PointTransformerV3(PointModule):
                 intermediate_feats.append(point_pooled)
 
             point_feat = torch.cat(intermediate_feats, dim=1)
-
+        
         else:
             point = self.enc(point) 
 

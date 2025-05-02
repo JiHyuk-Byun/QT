@@ -32,5 +32,6 @@ pdnorm_affine: true
 pdnorm_conditions: ["ScanNet", "S3DIS", "Structured3D"]
 
 n_prediction: 1
-multi_scale: true
+head_drop: 0.25
+multi_scale: false
 head_mlp_channels: [512, 256, 128]
