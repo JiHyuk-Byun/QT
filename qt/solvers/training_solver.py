@@ -184,6 +184,7 @@ class L1RankLoss(torch.nn.Module):
 
         self.rank_w.data.fill_(new_val)
     
+    
     def forward(self, preds, gts, global_step = None):
 
         if global_step is not None:
