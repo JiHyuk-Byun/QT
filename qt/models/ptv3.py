@@ -1017,8 +1017,6 @@ class PointTransformerV3(PointModule):
                 head_layers.append(nn.Dropout(head_drop))
 
 
-            head_layers.append(nn.Linear(head_mlp_channels[-1], self.n_prediction))
-        
         else:
             assert enc_channels[-1] == head_mlp_channels[0]
             head_layers = []
@@ -1031,9 +1029,6 @@ class PointTransformerV3(PointModule):
 
 
         head_layers.append(nn.Linear(head_mlp_channels[-1], self.n_prediction))
-
-
-
         self.cls_head = nn.Sequential(*head_layers)
 
     def forward(self, data_dict):
