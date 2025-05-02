@@ -47,7 +47,7 @@ class Ptv3Solver(BaseSolver):
         self.save_ckpt_freq = save_ckpt_freq
         
     def configure_optimizers(self):
-        self.total_epochs = self.trainer.max_epochs
+
         optimizer = [AdamW(self.parameters(), lr=self.lr, weight_decay=self.weight_decay)]
         
         scheduler = [self._get_scheduler(optimizer[0], self.scheduler_config, steps_per_epoch=self.steps_per_epoch)]

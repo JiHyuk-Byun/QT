@@ -38,8 +38,12 @@ class BaseSolver(LightningModule):
     def best_score(self):
         return self._best_score
     
-    def on_fit_start(self):
-        self.total_epochs = self.trainer.max_epochs
+    @property
+    def total_epochs(self):
+        return self.trainer.max_epochs if self.trainer else None
+    
+    # def on_fit_start(self):
+    #     self.total_epochs = self.trainer.max_epochs
     
     def track_score(self, score: any):
         if score > self._best_score:
