@@ -11,6 +11,7 @@ import engine
 
 parser = ArgumentParser()
 parser.add_argument('--config', '-c', type=str, required=True)
+parser.add_argument('--ckpt_path', '-p', type=str, default=None, help='Path to the saved checkpoint.')
 parser.add_argument('--exp_name', '-en', type=str, help='Name of the experiment')
 parser.add_argument('--debug', '-d', action='store_true', default=False, help='debug mode (for sanity check)')
 parser.add_argument('--gpus', '-g', default='-1',
@@ -34,6 +35,9 @@ def main():
     dm = engine.instantiate(cfg.data)
     solver = engine.instantiate(cfg.solver, dm=dm, model=model)
 
+    if args.ckpt_path is not None:
+        solver.load_checkpoint(args.ckpt_path)
+        
     if args.debug:
         dm.enable_debug_mode()
 

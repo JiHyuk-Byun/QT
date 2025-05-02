@@ -1,11 +1,12 @@
 _base_: ptv3_base
 
-lr: 5e-3
+lr: 2e-3
 weight_decay: 0.001
 block_lr_scale: 0.0001
 
 l1_w: 1
-rank_w: 0
+rank_w_max: 0
+warmup_steps: 1
 hard_thred: 5
 use_margin: true
 

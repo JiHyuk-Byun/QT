@@ -1,5 +1,5 @@
 _base_: objaverse_base
-root_dir: datasets/pcs_mp
-batch_size: 8
-eval_batch_size: 8
+root_dir: datasets/objaverse_full
+batch_size: 32
+eval_batch_size: 32
 
