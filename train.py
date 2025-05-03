@@ -36,19 +36,16 @@ def main():
     dm = engine.instantiate(cfg.data)
     solver = engine.instantiate(cfg.solver, dm=dm, model=model)
 
-    # if args.ckpt_path is not None:
-    #     solver.load_checkpoint(args.ckpt_path)
+    if args.ckpt_path is not None:
+        solver.load_checkpoint(args.ckpt_path)
 
     if args.debug:
         dm.enable_debug_mode()
 
-
     trainer: pl.Trainer = engine.prepare_trainer(cfg, gpus=args.gpus, debug=args.debug)
     
-    if args.ckpt_path is not None:
-        trainer.fit(model=solver, datamodule=dm, ckpt_path=args.ckpt_path)
-    else:
-        trainer.fit(model=solver, datamodule=dm)
+
+    trainer.fit(model=solver, datamodule=dm)
 
 
 if __name__ == '__main__':
