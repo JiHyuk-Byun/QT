@@ -24,7 +24,9 @@ class Ptv3Solver(BaseSolver):
                  ## loss
                  l1_w: float = 1,
                  rank_w: float = None,
+                 rank_w_min: float = 1,
                  rank_w_max: float = 10,
+                 warmup_start_step: int = 3000,
                  warmup_steps: int = 5000,
                  hard_thred: float = 1,
                  use_margin: bool = False,
@@ -43,7 +45,9 @@ class Ptv3Solver(BaseSolver):
         self.block_lr_scale = block_lr_scale
         self.scheduler_config = scheduler_config
         self.steps_per_epoch = len(self.dm.train_dataloader())
-        self.loss_fn = L1RankLoss(l1_w=l1_w, rank_w=rank_w,rank_w_max=rank_w_max, warmup_steps=warmup_steps,hard_thred=hard_thred, use_margin=use_margin)
+        self.loss_fn = L1RankLoss(l1_w=l1_w, rank_w=rank_w, rank_w_min=rank_w_min, rank_w_max=rank_w_max, 
+                                  warmup_start_step=warmup_start_step, warmup_steps=warmup_steps,
+                                  hard_thred=hard_thred, use_margin=use_margin)
 
 
         self.save_ckpt_freq = save_ckpt_freq
@@ -160,7 +164,9 @@ class L1RankLoss(torch.nn.Module):
     def __init__(self,
                  l1_w: float = 1,
                  rank_w: float = None,          
+                 rank_w_min: float = 1,
                  rank_w_max: float = 10,
+                 warmup_start_step: int = 3000,
                  warmup_steps: int = 5_000,
                  hard_thred: float = 1,
                  use_margin: bool = False,
@@ -169,21 +175,25 @@ class L1RankLoss(torch.nn.Module):
         super().__init__()
         # For checkpoint consistency
         if rank_w is not None:
+            rank_w_min = rank_w
             rank_w_max = rank_w
 
         self.l1_w = l1_w
+        self.rank_w_min = rank_w_min
         self.rank_w_max = rank_w_max
+        self.warmup_start_step = warmup_start_step
         self.warmup_steps = warmup_steps
         self.hard_thred = hard_thred
         self.use_margin = use_margin
         
-        self.register_buffer("rank_w", torch.tensor(0.0))
+        self.register_buffer("rank_w", torch.tensor(self.rank_w_min))
         self.l1_loss = nn.SmoothL1Loss()
     
     def update_weight(self, global_step):
-        s = min(1.0, global_step / self.warmup_steps)
-        new_val = self.rank_w_max * s                     # float or tensor OK
-
+        s = max(0.0, min(1.0, (global_step - self.warmup_start_step)/ self.warmup_steps))
+        
+        new_val = self.rank_w_min + (self.rank_w_max - self.rank_w_min) * s                     # float or tensor OK
+        
         self.rank_w.data.fill_(new_val)
     
     

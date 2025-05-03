@@ -8,7 +8,7 @@ from torch.utils.data import Dataset
 import numpy as np
 
 from .base import QA3DBaseDataModule
-from .utils import read_csv, pc_normalize, to_tensor, shuffle_point, GridSample, Collect
+from .utils import read_csv, pc_normalize, mos_normalize, to_tensor, shuffle_point, GridSample, Collect
 
 CRITERIA = {
     "geometry": 0,
@@ -137,8 +137,10 @@ class ObjaverseDataset(Dataset):
             'mos'   : torch.tensor([MOSlabels[self.criterion_idx]],
                                    dtype=torch.float32),
         }
-
+        
         data_dict = pc_normalize(data_dict)
+        data_dict = mos_normalize(data_dict)
+        
         #Augmentation
         for fn in self.augment_fns:
             data_dict = fn(data_dict)

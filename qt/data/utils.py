@@ -28,6 +28,12 @@ def pc_normalize(data_dict):
         data_dict['coord'] = data_dict['coord'] / m
     return data_dict
 
+def mos_normalize(data_dict):
+    if 'mos' in data_dict.keys():
+        mean = 3.
+        var = 2.
+        data_dict['mos'] = (data_dict['mos'] - mean) / var
+    return data_dict
 def shuffle_point(data_dict):
     assert "coord" in data_dict.keys()
     shuffle_index = np.arange(data_dict["coord"].shape[0])
