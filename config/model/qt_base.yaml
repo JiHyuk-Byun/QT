@@ -31,6 +31,7 @@ pdnorm_adaptive: false
 pdnorm_affine: true
 pdnorm_conditions: ["ScanNet", "S3DIS", "Structured3D"]
 
+enable_bn: true
 n_prediction: 1
 head_drop: 0.25
 multi_scale: false

@@ -8,6 +8,7 @@ enable_flash: false
 
 cls_mode: true
 
+enable_bn: false
 head_drop: 0.25
 multi_scale: false
 head_mlp_channels: [256, 128, 64]

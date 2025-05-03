@@ -851,6 +851,7 @@ class PointTransformerV3(PointModule):
         pdnorm_affine=True,
         pdnorm_conditions=("ScanNet", "S3DIS", "Structured3D"),
 
+        enable_bn=False,
         head_drop = 0.25,
         n_prediction = 1,
         multi_scale= False,
@@ -903,7 +904,7 @@ class PointTransformerV3(PointModule):
         self.embedding = Embedding(
             in_channels=in_channels,
             embed_channels=enc_channels[0],
-            norm_layer=ln_layer, #bn_layer
+            norm_layer=bn_layer if enable_bn else ln_layer,
             act_layer=act_layer,
         )
 
@@ -923,7 +924,7 @@ class PointTransformerV3(PointModule):
                         in_channels=enc_channels[s - 1],
                         out_channels=enc_channels[s],
                         stride=stride[s - 1],
-                        norm_layer=ln_layer,#bn_layer,
+                        norm_layer=bn_layer if enable_bn else ln_layer,#bn_layer,
                         act_layer=act_layer,
                     ),
                     name="down",
@@ -973,7 +974,7 @@ class PointTransformerV3(PointModule):
                         in_channels=dec_channels[s + 1],
                         skip_channels=enc_channels[s],
                         out_channels=dec_channels[s],
-                        norm_layer=ln_layer, #bn_layer
+                        norm_layer=bn_layer if enable_bn else ln_layer, #bn_layer
                         act_layer=act_layer,
                     ),
                     name="up",
