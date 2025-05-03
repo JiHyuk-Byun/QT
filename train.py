@@ -37,7 +37,7 @@ def main():
     solver = engine.instantiate(cfg.solver, dm=dm, model=model)
 
     if args.ckpt_path is not None:
-        solver = Ptv3Solver.load_from_checkpoint(args.ckpt_path, strict=True)
+        solver.load_checkpoint(args.ckpt_path)
         
     if args.debug:
         dm.enable_debug_mode()
