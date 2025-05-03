@@ -20,7 +20,7 @@ drop_path: 0.3
 shuffle_orders: true
 pre_norm: true
 enable_rpe: false
-enable_flash: false
+enable_flash: true
 upcast_attention: false
 upcast_softmax: false
 cls_mode: true
@@ -31,7 +31,7 @@ pdnorm_adaptive: false
 pdnorm_affine: true
 pdnorm_conditions: ["ScanNet", "S3DIS", "Structured3D"]
 
-enable_bn: true
+enable_bn: false
 n_prediction: 1
 head_drop: 0.25
 multi_scale: false

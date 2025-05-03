@@ -1,9 +1,9 @@
 _base_: objaverse_base
-root_dir: datasets/objaverse_full/
+root_dir: datasets/objaverse_comparable_10000/
 train_split: datasets/objaverse_comparable_10000/train_split.csv
 test_split: datasets/objaverse_comparable_10000/test_split.csv
-batch_size: 8
-eval_batch_size: 8
+batch_size: 32
+eval_batch_size: 32
 
 dataset_config:
   manual_seed: 123456

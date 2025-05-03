@@ -4,10 +4,11 @@ in_channels: 9
 enc_depths: [2, 2, 2, 3, 1] #[2, 2, 2, 6, 2]
 enc_channels: [32, 64, 128, 192, 256] #[32, 64, 128, 256, 512]
 
-enable_flash: false
+enable_flash: true
 
 cls_mode: true
 
+enable_bn: false
 head_drop: 0.25
 multi_scale: true
 head_mlp_channels: [672, 256, 128]
