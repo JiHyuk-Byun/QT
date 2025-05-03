@@ -23,6 +23,7 @@ class Ptv3Solver(BaseSolver):
                  
                  ## loss
                  l1_w: float = 1,
+                 rank_w: float = None,
                  rank_w_max: float = 10,
                  warmup_steps: int = 5000,
                  hard_thred: float = 1,
@@ -42,7 +43,7 @@ class Ptv3Solver(BaseSolver):
         self.block_lr_scale = block_lr_scale
         self.scheduler_config = scheduler_config
         self.steps_per_epoch = len(self.dm.train_dataloader())
-        self.loss_fn = L1RankLoss(l1_w=l1_w, rank_w_max=rank_w_max, warmup_steps=warmup_steps,hard_thred=hard_thred, use_margin=use_margin)
+        self.loss_fn = L1RankLoss(l1_w=l1_w, rank_w=rank_w,rank_w_max=rank_w_max, warmup_steps=warmup_steps,hard_thred=hard_thred, use_margin=use_margin)
 
 
         self.save_ckpt_freq = save_ckpt_freq
