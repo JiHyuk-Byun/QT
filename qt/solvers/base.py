@@ -61,7 +61,7 @@ class BaseSolver(LightningModule):
         checkpoint = torch.load(checkpoint_path)
         
         state_dict = checkpoint['state_dict']
-        self.load_state_dict(state_dict, strict=True)
+        self.load_state_dict(state_dict, strict=False)
 
         #self.checkpoint_epoch = checkpoint['epoch']
 
