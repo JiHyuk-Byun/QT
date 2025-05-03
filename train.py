@@ -7,6 +7,7 @@ os.environ['NCCL_ASYNC_ERROR_HANDLING']='1'
 from omegaconf import OmegaConf
 import lightning.pytorch as pl
 
+from qt.solvers import Ptv3Solver
 import engine
 
 parser = ArgumentParser()
@@ -36,7 +37,7 @@ def main():
     solver = engine.instantiate(cfg.solver, dm=dm, model=model)
 
     if args.ckpt_path is not None:
-        solver = solver.load_from_checkpoint(args.ckpt_path, strict=True)
+        solver = Ptv3Solver.load_from_checkpoint(args.ckpt_path, strict=True)
         
     if args.debug:
         dm.enable_debug_mode()
