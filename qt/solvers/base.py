@@ -62,7 +62,10 @@ class BaseSolver(LightningModule):
         
         state_dict = checkpoint['state_dict']
         self.load_state_dict(state_dict, strict=False)
-        self.checkpoint_epoch = checkpoint['epoch']
+        self.current_epoch = checkpoint['epoch']
+        self.global_step = checkpoint['global_step']
+
+        #self.checkpoint_epoch = checkpoint['epoch']
 
     def reset_metrics(self):
         if self._metrics is None:
