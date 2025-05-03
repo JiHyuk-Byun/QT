@@ -167,9 +167,11 @@ class L1RankLoss(torch.nn.Module):
                  **kwargs):                    
 
         super().__init__()
-
-        if rank_w is not None:
+        # For consistency
+        self.rank_w = rank_w
+        if self.rank_w is not None:
             rank_w_max = rank_w
+
         self.l1_w = l1_w
         self.rank_w_max = rank_w_max
         self.warmup_steps = warmup_steps
