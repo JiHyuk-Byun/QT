@@ -167,18 +167,17 @@ class L1RankLoss(torch.nn.Module):
                  **kwargs):                    
 
         super().__init__()
-        # For consistency
-        self.rank_w = rank_w
-        if self.rank_w is not None:
+        # For checkpoint consistency
+        if rank_w is not None:
             rank_w_max = rank_w
-
+        self.rank_w = rank_w
         self.l1_w = l1_w
         self.rank_w_max = rank_w_max
         self.warmup_steps = warmup_steps
         self.hard_thred = hard_thred
         self.use_margin = use_margin
-
-        self.register_buffer("rank_w", torch.tensor(0.0))
+        
+        #self.register_buffer("rank_w", torch.tensor(0.0))
         self.l1_loss = nn.SmoothL1Loss()
     
     def update_weight(self, global_step):
