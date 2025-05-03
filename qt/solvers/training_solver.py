@@ -208,24 +208,26 @@ class L1RankLoss(torch.nn.Module):
         l1_loss = self.l1_loss(preds, gts) * self.l1_w
 
         # simple rank
-        if self.rank_w > 0:
+        if float(self.rank_w) > 0:
             n = len(preds)
-            preds = preds.unsqueeze(0).repeat(n, 1)
-            preds_t = preds.t()
-            img_label = gts.unsqueeze(0).repeat(n, 1)
-            img_label_t = img_label.t()
-            masks = torch.sign(img_label - img_label_t)
-            masks_hard = (torch.abs(img_label - img_label_t) < self.hard_thred) & (torch.abs(img_label - img_label_t) > 0)
+            diff_label = gts[:, None] - gts[None, :]             # (n,n)
+            diff_pred  = preds[:, None] - preds[None, :]
+
+            sign = torch.sign(diff_label)
+            masks_hard = (torch.abs(diff_label) < self.hard_thred) & (torch.abs(diff_label) > 0)
+            
             if self.use_margin:
-                rank_loss = masks_hard * torch.relu(torch.abs(img_label - img_label_t) - masks * (preds - preds_t))
+                core = torch.relu(torch.abs(diff_label) - sign * (diff_pred))
             else:
-                rank_loss = masks_hard * torch.relu(- masks * (preds - preds_t))
-            rank_loss = rank_loss.sum() / (masks_hard.sum() + 1e-08)
+                core = torch.relu(- sign * (diff_pred))
+            
+            denom = masks_hard.sum().clamp(min=1)
+            rank_loss = (core * masks_hard).sum() / denom
         
         else:
-            rank_loss = torch.tensor(0.)
+            rank_loss = preds.new_tensor(0.0)
 
         
-        loss_total = l1_loss + rank_loss * self.rank_w
+        loss_total = l1_loss + rank_loss * float(self.rank_w)
         
         return l1_loss, rank_loss, loss_total
