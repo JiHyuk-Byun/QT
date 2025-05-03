@@ -13,7 +13,7 @@ from qt.solvers import BaseSolver, EvaluationSolver
 parser = ArgumentParser()
 parser.add_argument('experiment_dir', type=str, help='path to the saved experiment dir')
 parser.add_argument('--data', '-dm', type=str, default='userstudy_100', help='evaluation data module config path')
-#parser.add_argument('--name', '-n', type=str, default=None, help='Name of the experiment')
+parser.add_argument('--exp_name', '-n', type=str, default=None, help='Name of the experiment')
 parser.add_argument('--gpus', '-g', default='[1]',
                     help='GPU to use (num. GPU or gpu ids, follow pytorch-lightning convention). e.g., "-1" (all), "2" (2 GPU), "0,1" (GPU id 0, 1), "[0]" (GPU id 0)')
 
