@@ -15,4 +15,4 @@ model:
   _base_: model/qt_multiscalerank_sub
 
 solver:
-  _base_: solver/ptv3_base
+  _base_: solver/ptv3_rank
