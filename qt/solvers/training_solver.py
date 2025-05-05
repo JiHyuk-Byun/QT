@@ -100,8 +100,8 @@ class Ptv3Solver(BaseSolver):
         print(f'preds: {preds[:20]}')
         print(f'MOS: {labels[:20]}')
 
-        self._all_preds.append(preds)
-        self._all_labels.append(labels)
+        self._all_preds.append(preds.detach().cpu())
+        self._all_labels.append(labels.detach().cpu())
         # preds_normalized = self._min_max_normalize(preds)
         # labels_normalized = self._min_max_normalize(labels)
         # print(f'preds_norm: {preds_normalized[:20]}')
