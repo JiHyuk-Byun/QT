@@ -61,10 +61,11 @@ class EvaluationSolver(BaseSolver):
         
         metrics_no_fitted = self._evaluate_metrics(preds_norm_t, labels_norm_t)
 
-        self.reset_metrics()
+
         _, _, preds_fitted = self._logistic_4_fitting(preds, labels)
         print('preds:', preds)
         print('preds_fitted', preds_fitted)
+        print('labels: ', labels)
         preds_t = torch.from_numpy(preds_fitted).to(self.device)
         labels_t = torch.from_numpy(labels).to(self.device)
         
@@ -81,7 +82,7 @@ class EvaluationSolver(BaseSolver):
             f.write(result)
 
     def _evaluate_metrics(self, preds, labels):
-
+        self.reset_metrics()
         self.plcc_metric(preds, labels)
         self.srocc_metric(preds, labels)
         self.krocc_metric(preds, labels)
