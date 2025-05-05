@@ -9,10 +9,10 @@ trainer:
   detect_anomaly: false
 
 data:
-  _base_: data/objaverse_multi_predict6
+  _base_: data/objaverse_sub10k
 
 model:
-  _base_: model/qt_multi_predict6
+  _base_: model/qt_objaverse_full
 
 solver:
-  _base_: solver/ptv3_base
+  _base_: solver/ptv3_full
