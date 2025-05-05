@@ -55,10 +55,13 @@ class EvaluationSolver(BaseSolver):
         preds_norm = self._min_max_normalize(preds)
         labels_norm = self._min_max_normalize(labels)
 
-        metrics_no_fitted = self._evaluate_metrics(preds_norm, labels_norm)
+        preds_norm_t = torch.from_numpy(preds_norm).to(self.device)
+        labels_norm_t = torch.from_numpy(labels_norm).to(self.device)
+        
+        metrics_no_fitted = self._evaluate_metrics(preds_norm_t, labels_norm_t)
 
-        _, _, preds_normalized = self._logistic_4_fitting(preds, labels)
-        preds_t = torch.from_numpy(preds_normalized).to(self.device)
+        _, _, preds_fitted = self._logistic_4_fitting(preds, labels)
+        preds_t = torch.from_numpy(preds_fitted).to(self.device)
         labels_t = torch.from_numpy(labels).to(self.device)
         
         metrics_fitted = self._evaluate_metrics(preds_t, labels_t)
@@ -66,7 +69,7 @@ class EvaluationSolver(BaseSolver):
         result_str_no_fitted = f"[{self.dm.criterion}] PLCC: {metrics_no_fitted['plcc']}, SROCC: {metrics_no_fitted['srocc']}, KROCC: {metrics_no_fitted['krocc']}, RMSE: {metrics_no_fitted['rmse']}"
         result_str_fitted = f"[{self.dm.criterion}] PLCC: {metrics_fitted['plcc']}, SROCC: {metrics_fitted['srocc']}, KROCC: {metrics_fitted['krocc']}, RMSE: {metrics_fitted['rmse']}"
         
-        result = f'---No fitted Result---\n {result_str_no_fitted}' + '\n' + f'---fitted Result---\n {result_str}'
+        result = f'---No fitted Result---\n {result_str_no_fitted}' + '\n' + f'---fitted Result---\n {result_str_fitted}'
         
         out_path = osp.join(self.out_dir, f'eval_results_{self.dm.criterion}.txt')
         
