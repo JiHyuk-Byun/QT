@@ -132,7 +132,10 @@ class ObjaverseDataset(Dataset):
 
         data_dict = dict()
         for feat in self.feat_keys:
-            data_dict[feat] = data[feat].astype(np.float32)
+            if feat in ['metallic', 'roughness']:
+                data_dict[feat] = data[feat][:, None].astype(np.float32)
+            else:
+                data_dict[feat] = data[feat].astype(np.float32)
         data_dict['mos'] = torch.tensor([MOSlabels[idx] for idx in self.criterion_idxs],
                                    dtype=torch.float32)
         
