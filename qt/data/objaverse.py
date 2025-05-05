@@ -139,7 +139,7 @@ class ObjaverseDataset(Dataset):
         }
         
         data_dict = pc_normalize(data_dict)
-        data_dict = mos_normalize(data_dict)
+        #data_dict = mos_normalize(data_dict)
         
         #Augmentation
         for fn in self.augment_fns:

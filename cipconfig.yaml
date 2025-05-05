@@ -10,7 +10,7 @@ defaults:
 
 docker:
   image: 'ciplab/join_qa:${docker_version}'
-  container_name: join_gpu${gpu}_qa
+  container_name: jhbyun_gpu${gpu}_qa
 
 assets:
   - name: secrets
