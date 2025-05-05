@@ -3,7 +3,7 @@ root_dir: datasets/objaverse_full
 train_split: datasets/objaverse_comparable_10000/train_split.csv
 test_split: datasets/objaverse_comparable_10000/test_split.csv
 
-criterion: preference # geometry, texture, material, plausibility, artifacts, preference
+criterion: ['preference'] # geometry, texture, material, plausibility, artifacts, preference
 num_workers: 4 
 batch_size: 32
 eval_batch_size: 32

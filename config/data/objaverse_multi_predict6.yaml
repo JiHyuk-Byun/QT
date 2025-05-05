@@ -1,9 +1,8 @@
-_target_: qt.data.ObjaverseDataModule
+_base_: objaverse_sub10k
 
-root_dir: datasets/objaverse_full
+
 criterion: ['geometry', 'texture', 'material', 'plausibility', 'artifact', 'preference']
 batch_size: 4
-num_workers: 4
 eval_batch_size: 4
 
 dataset_config:
@@ -26,7 +25,7 @@ dataset_config:
   return_grid_coord: true
   
   keys: ['coord', 'grid_coord', 'mos']
-  feat_keys: ['coord', 'color', 'normal']
+  feat_keys: ['coord', 'color', 'normal','metallic', 'roughness']
   
 # point 수 6만개로 낮추기
 # grid_size 낮추기

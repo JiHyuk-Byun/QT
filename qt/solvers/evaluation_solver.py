@@ -16,18 +16,18 @@ class EvaluationSolver(BaseSolver):
 
         self.dm = dm
         self.solver = solver
-        
+        self.criterion = self.dm.criterion
         self.output_dir = engine.to_experiment_dir('outputs', self.dm.name)
         os.makedirs(self.output_dir, exist_ok=True)
 
     def validation_step(self, batch, batch_idx):
-        try:
-            outputs = self.solver(batch)
-        except torch.cuda.OutOfMemoryError as e:
-            print(e)
-            print(f"Out of MemoryError with input shape: {batch['feat'].shape}")
+
+        outputs = self.solver(batch)
         preds = outputs.detach().cpu().numpy()
-        labels = batch['mos'].detach().cpu().numpy()
+        B, C = preds.shape
+        labels = batch['mos'].view(B, C)
+        labels = labels.detach().cpu().numpy()
+        
         print(f'preds: {preds[:20]}')
         print(f'MOS: {labels[:20]}')
         self._all_preds.append(preds)
@@ -44,31 +44,36 @@ class EvaluationSolver(BaseSolver):
         preds = np.concatenate(self._all_preds, axis=0)
         labels = np.concatenate(self._all_labels, axis=0)
 
+        scores_no_fitted = {c: {} for c in self.criterion}
+        scores_fitted = {c: {} for c in self.criterion}
+        for i, crit in enumerate(self.criterion):
+            pred = preds[:, i]
+            gt = labels[:, i]
 
-        preds_norm = self._min_max_normalize(preds)
-        labels_norm = self._min_max_normalize(labels)
+            pred_norm = self._min_max_normalize(pred)
+            gt_norm = self._min_max_normalize(gt)
+            pred_norm_t = torch.from_numpy(pred_norm).to(self.device)
+            gt_norm_t = torch.from_numpy(gt_norm).to(self.device)
+            
+            metrics_no_fitted = self._evaluate_metrics(pred_norm_t, gt_norm_t)
+            scores_no_fitted[crit] = metrics_no_fitted
 
-        preds_norm_t = torch.from_numpy(preds_norm).to(self.device)
-        labels_norm_t = torch.from_numpy(labels_norm).to(self.device)
+            _, _, pred_fitted = self._logistic_4_fitting(pred, gt)
+            
+            preds_t = torch.from_numpy(pred_fitted).to(self.device)
+            gt_t = torch.from_numpy(gt).to(self.device)
+            metrics_fitted = self._evaluate_metrics(preds_t, gt_t)
+            scores_fitted[crit] = metrics_fitted
         
-        metrics_no_fitted = self._evaluate_metrics(preds_norm_t, labels_norm_t)
-
-
-        _, _, preds_fitted = self._logistic_4_fitting(preds, labels)
-        print('preds:', preds)
-        print('preds_fitted', preds_fitted)
-        print('labels: ', labels)
-        preds_t = torch.from_numpy(preds_fitted).to(self.device)
-        labels_t = torch.from_numpy(labels).to(self.device)
-        
-        metrics_fitted = self._evaluate_metrics(preds_t, labels_t)
-        
-        result_str_no_fitted = f"[{self.dm.criterion}] PLCC: {metrics_no_fitted['plcc']}, SROCC: {metrics_no_fitted['srocc']}, KROCC: {metrics_no_fitted['krocc']}, RMSE: {metrics_no_fitted['rmse']}"
-        result_str_fitted = f"[{self.dm.criterion}] PLCC: {metrics_fitted['plcc']}, SROCC: {metrics_fitted['srocc']}, KROCC: {metrics_fitted['krocc']}, RMSE: {metrics_fitted['rmse']}"
+        result_str_no_fitted = ''
+        result_str_fitted = ''
+        for c in self.criterion:
+            result_str_no_fitted += f"[{c}] PLCC: {scores_no_fitted[c]['plcc']}, SROCC: {scores_no_fitted[c]['srocc']}, KROCC: {scores_no_fitted[c]['krocc']}, RMSE: {scores_no_fitted[c]['rmse']}\n"
+            result_str_fitted += f"[{c}] PLCC: {scores_fitted[c]['plcc']}, SROCC: {scores_fitted[c]['srocc']}, KROCC: {scores_fitted[c]['krocc']}, RMSE: {scores_fitted[c]['rmse']}\n"
         
         result = f'---No fitted Result---\n {result_str_no_fitted}' + '\n' + f'---fitted Result---\n {result_str_fitted}'
         print(result)
-        out_path = osp.join(self.out_dir, f'eval_results_{self.dm.criterion}.txt')
+        out_path = osp.join(self.out_dir, f'eval_results_{self.criterion}.txt')
         
         with open(out_path, 'w') as f:
             f.write(result)

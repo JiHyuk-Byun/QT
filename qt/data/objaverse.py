@@ -8,7 +8,7 @@ from torch.utils.data import Dataset
 import numpy as np
 
 from .base import QA3DBaseDataModule
-from .utils import read_csv, pc_normalize, mos_normalize, to_tensor, shuffle_point, GridSample, Collect
+from .utils import read_csv, pc_normalize, mos_normalize, feat_normalize, to_tensor, shuffle_point, GridSample, Collect
 
 CRITERIA = {
     "geometry": 0,
@@ -28,7 +28,7 @@ class ObjaverseDataModule(QA3DBaseDataModule):
                  root_dir: str,
                  train_split: str,
                  test_split: str,
-                 criterion: str,
+                 criterion: list,
                  batch_size: int,
                  num_workers: int,
                  dataset_config: dict,
@@ -55,7 +55,7 @@ class ObjaverseDataset(Dataset):
                  root_dir: str, 
                  train_split: str,
                  test_split: str,
-                 criterion: str,
+                 criterion: list,
                  split: str,
                  augments: Dict[str, dict],
 
@@ -78,7 +78,7 @@ class ObjaverseDataset(Dataset):
         self.split_path = self.train_split if split == 'train' else self.test_split
         
         self.criterion = criterion
-        self.criterion_idx = CRITERIA[self.criterion]
+        self.criterion_idxs = [CRITERIA[c] for c in self.criterion]
         self.manual_seed = manual_seed
 
         self.files = read_csv(self.split_path)
@@ -88,6 +88,7 @@ class ObjaverseDataset(Dataset):
 
         self.grid_sampler = GridSample(grid_size=grid_size, hash_type=hash_type, return_grid_coord=return_grid_coord, mode='train')
         
+        self.feat_keys = feat_keys
         self.collect_keys = Collect(keys=keys, feat_keys=feat_keys)
         # after collect, e.g. key: [coord, grid_coord, 'mos', 'offset', 'feat'(which is concatnated)] 
     
@@ -129,22 +130,22 @@ class ObjaverseDataset(Dataset):
                               f"({type(e).__name__}: {e})")
                     return None
 
-
-        data_dict = {
-            'coord' : data['coord'].astype(np.float32),
-            'color' : data['color'].astype(np.float32),
-            'normal': data['normal'].astype(np.float32),
-            'mos'   : torch.tensor([MOSlabels[self.criterion_idx]],
-                                   dtype=torch.float32),
-        }
+        data_dict = dict()
+        for feat in self.feat_keys:
+            data_dict[feat] = data[feat].astype(np.float32)
+        data_dict['mos'] = torch.tensor([MOSlabels[idx] for idx in self.criterion_idxs],
+                                   dtype=torch.float32)
         
         data_dict = pc_normalize(data_dict)
+        data_dict = feat_normalize(data_dict)
         #data_dict = mos_normalize(data_dict)
-        
+
         #Augmentation
         for fn in self.augment_fns:
             data_dict = fn(data_dict)
+
         # Grid sampling
         data_dict = self.grid_sampler(data_dict)
         data_dict = to_tensor(shuffle_point(data_dict))
+
         return self.collect_keys(data_dict)

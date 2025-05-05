@@ -6,8 +6,6 @@ enc_channels: [32, 64, 128, 192, 256] #[32, 64, 128, 256, 512]
 
 enable_flash: true
 
-cls_mode: true
-
 enable_bn: false
 head_drop: 0.25
 multi_scale: false

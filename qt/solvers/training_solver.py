@@ -13,8 +13,8 @@ from .base import BaseSolver
 
 class Ptv3Solver(BaseSolver):
 
-    def __init__(self, dm: ObjaverseDataModule, model: nn.Module,
-                 
+    def __init__(self, dm: ObjaverseDataModule, model: nn.Module, 
+
                  ## optimizer, scheduler params
                  scheduler_config: dict,
                  lr: float = 1e-4,
@@ -39,15 +39,22 @@ class Ptv3Solver(BaseSolver):
 
         self.dm = dm
         self.model = model
+        self.criterion = self.dm.criterion
         self.lr = lr
         self.weight_decay = weight_decay
 #        self.warm_up_epochs = warm_up_epochs
         self.block_lr_scale = block_lr_scale
         self.scheduler_config = scheduler_config
         self.steps_per_epoch = len(self.dm.train_dataloader())
-        self.loss_fn = L1RankLoss(l1_w=l1_w, rank_w=rank_w, rank_w_min=rank_w_min, rank_w_max=rank_w_max, 
-                                  warmup_start_step=warmup_start_step, warmup_steps=warmup_steps,
-                                  hard_thred=hard_thred, use_margin=use_margin)
+        self.loss_fn = L1RankLoss(l1_w=l1_w, 
+                                  rank_w=rank_w, 
+                                  rank_w_min=rank_w_min, 
+                                  rank_w_max=rank_w_max, 
+                                  warmup_start_step=warmup_start_step, 
+                                  warmup_steps=warmup_steps,
+                                  hard_thred=hard_thred, 
+                                  use_margin=use_margin,
+                                  num_criterion=len(self.criterion))
 
         self._all_preds = []
         self._all_labels = []
@@ -70,15 +77,13 @@ class Ptv3Solver(BaseSolver):
     
     def training_step(self, batch, batch_idx):
         #print(batch['feat'].shape)
-        try:
-            outputs = self(batch)
-        except torch.cuda.OutOfMemoryError as e:
-            print(e)
-            print(f"Out of MemoryError with input shape: {batch['feat'].shape}")
-            exit()
+        outputs = self(batch)
         preds = outputs
+        B, C = preds.shape
         labels = batch['mos']
-
+        labels = labels.view(B, C)
+        if labels.dim() == 1:
+            labels = labels.unsqueeze(0)
         l1_loss, rank_loss, total_loss = self.loss_fn(preds, labels, self.global_step)
 
         self.log('train/l1_loss', l1_loss.mean().item())
@@ -90,13 +95,13 @@ class Ptv3Solver(BaseSolver):
         }
     
     def validation_step(self, batch, batch_idx):
-        try:
-            outputs = self(batch)
-        except torch.cuda.OutOfMemoryError as e:
-            print(e)
-            print(f"Out of MemoryError with input shape: {batch['feat'].shape}")
+
+        outputs = self(batch)
         preds = outputs
+        B, C = preds.shape
         labels = batch['mos']
+        labels = labels.view(B, C)
+
         print(f'preds: {preds[:20]}')
         print(f'MOS: {labels[:20]}')
 
@@ -113,32 +118,34 @@ class Ptv3Solver(BaseSolver):
         preds = np.concatenate(self._all_preds, axis=0)
         labels = np.concatenate(self._all_labels, axis=0)
 
-        preds_norm = self._min_max_normalize(preds)
-        labels_norm = self._min_max_normalize(labels)
-        preds_norm_t = torch.from_numpy(preds_norm).to(self.device)
-        labels_norm_t = torch.from_numpy(labels_norm).to(self.device)
+        sroccs = []
 
-        metrics_no_fitted = self._evaluate_metrics(preds_norm_t, labels_norm_t)
+        for i, crit in enumerate(self.criterion):
+            pred = preds[:, i]
+            gt = labels[:, i]
+
+
+            pred_norm = self._min_max_normalize(pred)
+            gt_norm = self._min_max_normalize(gt)
+            pred_norm_t = torch.from_numpy(pred_norm).to(self.device)
+            gt_norm_t = torch.from_numpy(gt_norm).to(self.device)
+            
+            metrics_no_fitted = self._evaluate_metrics(pred_norm_t, gt_norm_t)
+            for k, v in metrics_no_fitted.items():
+                self.log(f'val/{crit}/{k}_no_fitted', v, rank_zero_only=True, on_epoch=True, sync_dist=True)
+            
+            sroccs.append(metrics_no_fitted['srocc'])
+
+            _, _, pred_fitted = self._logistic_4_fitting(pred, gt)
+            
+            preds_t = torch.from_numpy(pred_fitted).to(self.device)
+            gt_t = torch.from_numpy(gt).to(self.device)
+            metrics_fitted = self._evaluate_metrics(preds_t, gt_t)
+            for k, v in metrics_fitted.items():
+                self.log(f'val/{crit}/{k}_fitted', v, rank_zero_only=True, on_epoch=True, sync_dist=True)
         
-        _, _, preds_fitted = self._logistic_4_fitting(preds, labels)
-
-        preds_t = torch.from_numpy(preds_fitted).to(self.device)
-        labels_t = torch.from_numpy(labels).to(self.device)
-        
-        metrics_fitted = self._evaluate_metrics(preds_t, labels_t)
-
-
-        self.log('val/plcc_no_fitted', metrics_no_fitted['plcc'], rank_zero_only=True, on_epoch=True, sync_dist=True)
-        self.log('val/srocc_no_fitted', metrics_no_fitted["srocc"], rank_zero_only=True, on_epoch=True, sync_dist=True)
-        self.log('val/krocc_no_fitted', metrics_no_fitted["krocc"], rank_zero_only=True, on_epoch=True, sync_dist=True)
-        self.log('val/rmse_no_fitted', metrics_no_fitted['rmse'], rank_zero_only=True, on_epoch=True, sync_dist=True)
-
-        self.log('val/plcc_fitted', metrics_fitted['plcc'], rank_zero_only=True, on_epoch=True, sync_dist=True)
-        self.log('val/srocc_fitted', metrics_fitted["srocc"], rank_zero_only=True, on_epoch=True, sync_dist=True)
-        self.log('val/krocc_fitted', metrics_fitted["krocc"], rank_zero_only=True, on_epoch=True, sync_dist=True)
-        self.log('val/rmse_fitted', metrics_fitted['rmse'], rank_zero_only=True, on_epoch=True, sync_dist=True)
-
-        self.track_score(metrics_no_fitted['srocc'])
+        mean_srocc = torch.stack(sroccs).mean()
+        self.track_score(mean_srocc)
 
         # if (epoch + 1) % self.save_ckpt_freq == 0:
         #     ckpt_path = osp.join(self.out_dir, f'epoch-{epoch+1:03d}.ckpt')
@@ -187,6 +194,7 @@ class L1RankLoss(torch.nn.Module):
                  warmup_steps: int = 5_000,
                  hard_thred: float = 1,
                  use_margin: bool = False,
+                 num_criteria: int = 1,
                  **kwargs):                    
 
         super().__init__()
@@ -202,9 +210,10 @@ class L1RankLoss(torch.nn.Module):
         self.warmup_steps = warmup_steps
         self.hard_thred = hard_thred
         self.use_margin = use_margin
-        
+        self.num_criteria = num_criteria
+
         self.register_buffer("rank_w", torch.tensor(self.rank_w_min))
-        self.l1_loss = nn.SmoothL1Loss()
+        self.l1_loss = nn.SmoothL1Loss(reduction='none')
     
     def update_weight(self, global_step):
         s = max(0.0, min(1.0, (global_step - self.warmup_start_step)/ self.warmup_steps))
@@ -219,32 +228,42 @@ class L1RankLoss(torch.nn.Module):
         if global_step is not None:
             self.update_weight(global_step)
 
+        B, C = preds.shape
         preds = preds.view(-1)
         gts = gts.view(-1)
         # l1 loss
-        l1_loss = self.l1_loss(preds, gts) * self.l1_w
+        l1_elem = self.l1_loss(preds, gts)
+        l1_loss = l1_elem.mean(dim=0) * self.l1_w
 
         # simple rank
+        rank_losses = []
         if float(self.rank_w) > 0:
-            n = len(preds)
-            diff_label = gts[:, None] - gts[None, :]             # (n,n)
-            diff_pred  = preds[:, None] - preds[None, :]
+            for c in range(C):
+                pi = preds[:, c]
+                gi = gts[:, c]
 
-            sign = torch.sign(diff_label)
-            masks_hard = (torch.abs(diff_label) < self.hard_thred) & (torch.abs(diff_label) > 0)
-            
-            if self.use_margin:
-                core = torch.relu(torch.abs(diff_label) - sign * (diff_pred))
-            else:
-                core = torch.relu(- sign * (diff_pred))
-            
-            denom = masks_hard.sum().clamp(min=1)
-            rank_loss = (core * masks_hard).sum() / denom
+                diff_label = gi[:, None] - gi[None, :]             # (n,n)
+                diff_pred  = pi[:, None] - pi[None, :]
+
+                sign = torch.sign(diff_label)
+                masks_hard = (torch.abs(diff_label) < self.hard_thred) & (torch.abs(diff_label) > 0)
+                
+                if self.use_margin:
+                    core = torch.relu(torch.abs(diff_label) - sign * (diff_pred))
+                else:
+                    core = torch.relu(- sign * (diff_pred))
+                
+                denom = masks_hard.sum().clamp(min=1)
+                rank_losses.append((core * masks_hard).sum() / denom)
         
         else:
-            rank_loss = preds.new_tensor(0.0)
+            rank_losses = [preds.new_tensor(0.0) for _ in range(C)]
 
+        rank_loss = torch.stack(rank_losses)
         
-        loss_total = l1_loss + rank_loss * float(self.rank_w)
-        
-        return l1_loss, rank_loss, loss_total
+        loss_per_criterion = l1_loss + rank_loss * float(self.rank_w) # [C]
+        total_loss = loss_per_criterion.mean()
+
+        return l1_loss.mean(), rank_loss.mean(), total_loss
+
+

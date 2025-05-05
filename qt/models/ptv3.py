@@ -1027,7 +1027,6 @@ class PointTransformerV3(PointModule):
                 )
                 head_layers.append(nn.GELU())
 
-
         head_layers.append(nn.Linear(head_mlp_channels[-1], self.n_prediction))
         self.cls_head = nn.Sequential(*head_layers)
 
@@ -1061,5 +1060,5 @@ class PointTransformerV3(PointModule):
             point_feat = torch_scatter.scatter_mean(point.feat, point.batch, dim=0)
         
         # cls mode        
-        logits = self.cls_head(point_feat).squeeze(-1)
+        logits = self.cls_head(point_feat)
         return logits

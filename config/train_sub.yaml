@@ -6,13 +6,13 @@ trainer:
   log_every_n_steps: 50
   precision: 32 #16-mixed
   accumulate_grad_batches: 2
-  detect_anomaly: true
+  detect_anomaly: false
 
 data:
-  _base_: data/objaverse_sub10k
+  _base_: data/objaverse_multi_predict6
 
 model:
-  _base_: model/qt_objaverse_full
+  _base_: model/qt_multi_predict6
 
 solver:
-  _base_: solver/ptv3_full
+  _base_: solver/ptv3_base
