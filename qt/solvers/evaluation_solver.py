@@ -52,25 +52,41 @@ class EvaluationSolver(BaseSolver):
         preds = np.concatenate(self._all_preds, axis=0)
         labels = np.concatenate(self._all_labels, axis=0)
 
-        _, _, preds_normalized = self._logistic_4_fitting(preds, labels)
+        preds_norm = self._min_max_normalize(preds)
+        labels_norm = self._min_max_normalize(labels)
 
+        metrics_no_fitted = self._evaluate_metrics(preds_norm, labels_norm)
+
+        _, _, preds_normalized = self._logistic_4_fitting(preds, labels)
         preds_t = torch.from_numpy(preds_normalized).to(self.device)
         labels_t = torch.from_numpy(labels).to(self.device)
         
-        self.plcc_metric(preds_t, labels_t)
-        self.srocc_metric(preds_t, labels_t)
-        self.krocc_metric(preds_t, labels_t)
-        self.rmse_metric(preds_t, labels_t)
+        metrics_fitted = self._evaluate_metrics(preds_t, labels_t)
+        
+        result_str_no_fitted = f"[{self.dm.criterion}] PLCC: {metrics_no_fitted['plcc']}, SROCC: {metrics_no_fitted['srocc']}, KROCC: {metrics_no_fitted['krocc']}, RMSE: {metrics_no_fitted['rmse']}"
+        result_str_fitted = f"[{self.dm.criterion}] PLCC: {metrics_fitted['plcc']}, SROCC: {metrics_fitted['srocc']}, KROCC: {metrics_fitted['krocc']}, RMSE: {metrics_fitted['rmse']}"
+        
+        result = f'---No fitted Result---\n {result_str_no_fitted}' + '\n' + f'---fitted Result---\n {result_str}'
+        
+        out_path = osp.join(self.out_dir, f'eval_results_{self.dm.criterion}.txt')
+        
+        with open(out_path, 'w') as f:
+            f.write(result)
+
+    def _evaluate_metrics(self, preds, labels):
+
+        self.plcc_metric(preds, labels)
+        self.srocc_metric(preds, labels)
+        self.krocc_metric(preds, labels)
+        self.rmse_metric(preds, labels)
         
         plcc = self.plcc_metric.compute()
         srocc = self.srocc_metric.compute()
         krocc = self.krocc_metric.compute()
         rmse = self.rmse_metric.compute()
 
-        result_str = f"[{self.dm.criterion}] PLCC: {plcc}, SROCC: {srocc}, KROCC: {krocc}, RMSE: {rmse}"
-        print(result_str)
-        out_path = osp.join(self.out_dir, f'eval_results_{self.dm.criterion}.txt')
-        
-        with open(out_path, 'w') as f:
-            f.write(result_str)
+        return {'plcc': plcc,
+                'srocc': srocc,
+                'krocc': krocc,
+                'rmse': rmse}
 
