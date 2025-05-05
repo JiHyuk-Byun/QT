@@ -44,12 +44,14 @@ class EvaluationSolver(BaseSolver):
         preds = np.concatenate(self._all_preds, axis=0)
         labels = np.concatenate(self._all_labels, axis=0)
 
+
         scores_no_fitted = {c: {} for c in self.criterion}
         scores_fitted = {c: {} for c in self.criterion}
         for i, crit in enumerate(self.criterion):
             pred = preds[:, i]
             gt = labels[:, i]
-
+            print('pred: ', pred)
+            print('labels:', gt)
             pred_norm = self._min_max_normalize(pred)
             gt_norm = self._min_max_normalize(gt)
             pred_norm_t = torch.from_numpy(pred_norm).to(self.device)
