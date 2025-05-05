@@ -6,6 +6,9 @@ import torch
 from lightning.pytorch import LightningModule, Callback
 from torchmetrics import Metric
 from torchmetrics.regression import PearsonCorrCoef, SpearmanCorrCoef, KendallRankCorrCoef
+import numpy as np
+from scipy.optimize import curve_fit
+
 
 import engine
 from qt.metrics import PLCC, SROCC, KROCC, RMSE
@@ -78,6 +81,18 @@ class BaseSolver(LightningModule):
     @torch.no_grad()
     def _min_max_normalize(self, mos_array):
         return (mos_array - mos_array.min()) / (mos_array.max() - mos_array.min()) * 100
+    
+    @torch.no_grad()
+    def _logistic_4_fitting(self, x, y):
+        def func(x, b0, b1, b2, b3):
+            return b1 + np.divide(b0 - b1, 1 + np.exp(np.divide(b2 - x, np.abs(b3))))
+        x_axis = np.linspace(np.amin(x), np.amax(x), 100)
+        init = np.array([np.max(y), np.min(y), np.mean(x), 0.1])
+        popt, _ = curve_fit(func, x, y, p0=init, maxfev=int(1e8))
+        curve = func(x_axis, *popt)
+        fitted = func(x, *popt)
+
+        return x_axis, curve, fitted
     
 class _DefaultTaskCallback(Callback):
     def on_sanity_check_end(self, trainer, solver):

@@ -16,9 +16,17 @@ class EvaluationSolver(BaseSolver):
 
         self.dm = dm
         self.solver = solver
-
+        
         self.output_dir = engine.to_experiment_dir('outputs', self.dm.name)
         os.makedirs(self.output_dir, exist_ok=True)
+        
+        self._all_preds = []
+        self._all_labels = []
+
+    def on_validation_epoch_start(self) -> None:
+        self._all_preds.clear()
+        self._all_labels.clear()
+        self.reset_metrics()
 
     def validation_step(self, batch, batch_idx):
         try:
@@ -26,21 +34,33 @@ class EvaluationSolver(BaseSolver):
         except torch.cuda.OutOfMemoryError as e:
             print(e)
             print(f"Out of MemoryError with input shape: {batch['feat'].shape}")
-        preds = outputs
-        labels = batch['mos']
+        preds = outputs.detach().cpu().numpy()
+        labels = batch['mos'].detach().cpu().numpy()
         print(f'preds: {preds[:20]}')
         print(f'MOS: {labels[:20]}')
-        preds_normalized = self._min_max_normalize(preds)
-        labels_normalized = self._min_max_normalize(labels)
-        print(f'preds_norm: {preds_normalized[:20]}')
-        print(f'MOS_norm: {labels_normalized[:20]}')
+        self._all_preds.append(preds)
+        self._all_labels.append(labels)
+#        _, _, preds_normalized = self._logistic_4_fitting(preds)
+#        labels_normalized = self._logistic_4_fitting(labels)
+        # print(f'preds_norm: {preds_normalized[:20]}')
+        # print(f'MOS_norm: {labels[:20]}')
        
-        self.plcc_metric(preds_normalized, labels_normalized)
-        self.srocc_metric(preds_normalized, labels_normalized)
-        self.krocc_metric(preds_normalized, labels_normalized)
-        self.rmse_metric(preds_normalized, labels_normalized)
+
 
     def on_validation_epoch_end(self):
+        
+        preds = np.concatenate(self._all_preds, axis=0)
+        labels = np.concatenate(self._all_labels, axis=0)
+
+        _, _, preds_normalized = self._logistic_4_fitting(preds, labels)
+
+        preds_t = torch.from_numpy(preds_normalized).to(self.device)
+        labels_t = torch.from_numpy(labels).to(self.device)
+        
+        self.plcc_metric(preds_t, labels_t)
+        self.srocc_metric(preds_t, labels_t)
+        self.krocc_metric(preds_t, labels_t)
+        self.rmse_metric(preds_t, labels_t)
         
         plcc = self.plcc_metric.compute()
         srocc = self.srocc_metric.compute()
