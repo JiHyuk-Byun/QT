@@ -52,6 +52,7 @@ class EvaluationSolver(BaseSolver):
         preds = np.concatenate(self._all_preds, axis=0)
         labels = np.concatenate(self._all_labels, axis=0)
 
+
         preds_norm = self._min_max_normalize(preds)
         labels_norm = self._min_max_normalize(labels)
 
@@ -60,7 +61,10 @@ class EvaluationSolver(BaseSolver):
         
         metrics_no_fitted = self._evaluate_metrics(preds_norm_t, labels_norm_t)
 
+        self.reset_metrics()
         _, _, preds_fitted = self._logistic_4_fitting(preds, labels)
+        print('preds:', preds)
+        print('preds_fitted', preds_fitted)
         preds_t = torch.from_numpy(preds_fitted).to(self.device)
         labels_t = torch.from_numpy(labels).to(self.device)
         
@@ -70,7 +74,7 @@ class EvaluationSolver(BaseSolver):
         result_str_fitted = f"[{self.dm.criterion}] PLCC: {metrics_fitted['plcc']}, SROCC: {metrics_fitted['srocc']}, KROCC: {metrics_fitted['krocc']}, RMSE: {metrics_fitted['rmse']}"
         
         result = f'---No fitted Result---\n {result_str_no_fitted}' + '\n' + f'---fitted Result---\n {result_str_fitted}'
-        
+        print(result)
         out_path = osp.join(self.out_dir, f'eval_results_{self.dm.criterion}.txt')
         
         with open(out_path, 'w') as f:
