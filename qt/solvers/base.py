@@ -30,6 +30,14 @@ class BaseSolver(LightningModule):
         self.srocc_metric = SpearmanCorrCoef() #SROCC()
         self.krocc_metric = KendallRankCorrCoef(variant='b')#KROCC()
         self.rmse_metric = RMSE()
+        
+        self._all_preds = []
+        self._all_labels = []
+        
+    def on_validation_epoch_start(self) -> None:
+        self._all_preds.clear()
+        self._all_labels.clear()
+        self.reset_metrics()
 
     def configure_callbacks(self):
         return self._additional_callbacks
@@ -93,7 +101,24 @@ class BaseSolver(LightningModule):
         fitted = func(x, *popt)
 
         return x_axis, curve, fitted
-    
+
+    def _evaluate_metrics(self, preds, labels):
+        self.reset_metrics()
+        self.plcc_metric(preds, labels)
+        self.srocc_metric(preds, labels)
+        self.krocc_metric(preds, labels)
+        self.rmse_metric(preds, labels)
+        
+        plcc = self.plcc_metric.compute()
+        srocc = self.srocc_metric.compute()
+        krocc = self.krocc_metric.compute()
+        rmse = self.rmse_metric.compute()
+
+        return {'plcc': plcc,
+                'srocc': srocc,
+                'krocc': krocc,
+                'rmse': rmse}
+
 class _DefaultTaskCallback(Callback):
     def on_sanity_check_end(self, trainer, solver):
         if not isinstance(solver, BaseSolver):

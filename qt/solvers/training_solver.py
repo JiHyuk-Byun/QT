@@ -49,6 +49,8 @@ class Ptv3Solver(BaseSolver):
                                   warmup_start_step=warmup_start_step, warmup_steps=warmup_steps,
                                   hard_thred=hard_thred, use_margin=use_margin)
 
+        self._all_preds = []
+        self._all_labels = []
 
         self.save_ckpt_freq = save_ckpt_freq
         
@@ -97,31 +99,46 @@ class Ptv3Solver(BaseSolver):
         labels = batch['mos']
         print(f'preds: {preds[:20]}')
         print(f'MOS: {labels[:20]}')
-        preds_normalized = self._min_max_normalize(preds)
-        labels_normalized = self._min_max_normalize(labels)
-        print(f'preds_norm: {preds_normalized[:20]}')
-        print(f'MOS_norm: {labels_normalized[:20]}')
+
+        self._all_preds.append(preds)
+        self._all_labels.append(labels)
+        # preds_normalized = self._min_max_normalize(preds)
+        # labels_normalized = self._min_max_normalize(labels)
+        # print(f'preds_norm: {preds_normalized[:20]}')
+        # print(f'MOS_norm: {labels_normalized[:20]}')
         #loss = self.loss_fn(preds, labels)
 
-        self.plcc_metric(preds_normalized, labels_normalized)
-        self.srocc_metric(preds_normalized, labels_normalized)
-        self.krocc_metric(preds_normalized, labels_normalized)
-        self.rmse_metric(preds_normalized, labels_normalized)
-
     def on_validation_epoch_end(self):
-        epoch = self.current_epoch
 
-        plcc = self.plcc_metric.compute()
-        srocc = self.srocc_metric.compute()
-        krocc = self.krocc_metric.compute()
-        rmse = self.rmse_metric.compute()
+        preds = np.concatenate(self._all_preds, axis=0)
+        labels = np.concatenate(self._all_labels, axis=0)
 
-        self.log('val/plcc', plcc, rank_zero_only=True, on_epoch=True, sync_dist=True)
-        self.log('val/srocc', srocc, rank_zero_only=True, on_epoch=True, sync_dist=True)
-        self.log('val/krocc', krocc, rank_zero_only=True, on_epoch=True, sync_dist=True)
-        self.log('val/rmse', rmse, rank_zero_only=True, on_epoch=True, sync_dist=True)
+        preds_norm = self._min_max_normalize(preds)
+        labels_norm = self._min_max_normalize(labels)
+        preds_norm_t = torch.from_numpy(preds_norm).to(self.device)
+        labels_norm_t = torch.from_numpy(labels_norm).to(self.device)
 
-        self.track_score(srocc)
+        metrics_no_fitted = self._evaluate_metrics(preds_norm_t, labels_norm_t)
+        
+        _, _, preds_fitted = self._logistic_4_fitting(preds, labels)
+
+        preds_t = torch.from_numpy(preds_fitted).to(self.device)
+        labels_t = torch.from_numpy(labels).to(self.device)
+        
+        metrics_fitted = self._evaluate_metrics(preds_t, labels_t)
+
+
+        self.log('val/plcc_no_fitted', metrics_no_fitted['plcc'], rank_zero_only=True, on_epoch=True, sync_dist=True)
+        self.log('val/srocc_no_fitted', metrics_no_fitted["srocc"], rank_zero_only=True, on_epoch=True, sync_dist=True)
+        self.log('val/krocc_no_fitted', metrics_no_fitted["krocc"], rank_zero_only=True, on_epoch=True, sync_dist=True)
+        self.log('val/rmse_no_fitted', metrics_no_fitted['rmse'], rank_zero_only=True, on_epoch=True, sync_dist=True)
+
+        self.log('val/plcc_fitted', metrics_fitted['plcc'], rank_zero_only=True, on_epoch=True, sync_dist=True)
+        self.log('val/srocc_fitted', metrics_fitted["srocc"], rank_zero_only=True, on_epoch=True, sync_dist=True)
+        self.log('val/krocc_fitted', metrics_fitted["krocc"], rank_zero_only=True, on_epoch=True, sync_dist=True)
+        self.log('val/rmse_fitted', metrics_fitted['rmse'], rank_zero_only=True, on_epoch=True, sync_dist=True)
+
+        self.track_score(metrics_no_fitted['srocc'])
 
         # if (epoch + 1) % self.save_ckpt_freq == 0:
         #     ckpt_path = osp.join(self.out_dir, f'epoch-{epoch+1:03d}.ckpt')

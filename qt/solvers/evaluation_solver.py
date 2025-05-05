@@ -19,14 +19,6 @@ class EvaluationSolver(BaseSolver):
         
         self.output_dir = engine.to_experiment_dir('outputs', self.dm.name)
         os.makedirs(self.output_dir, exist_ok=True)
-        
-        self._all_preds = []
-        self._all_labels = []
-
-    def on_validation_epoch_start(self) -> None:
-        self._all_preds.clear()
-        self._all_labels.clear()
-        self.reset_metrics()
 
     def validation_step(self, batch, batch_idx):
         try:
@@ -81,20 +73,4 @@ class EvaluationSolver(BaseSolver):
         with open(out_path, 'w') as f:
             f.write(result)
 
-    def _evaluate_metrics(self, preds, labels):
-        self.reset_metrics()
-        self.plcc_metric(preds, labels)
-        self.srocc_metric(preds, labels)
-        self.krocc_metric(preds, labels)
-        self.rmse_metric(preds, labels)
-        
-        plcc = self.plcc_metric.compute()
-        srocc = self.srocc_metric.compute()
-        krocc = self.krocc_metric.compute()
-        rmse = self.rmse_metric.compute()
-
-        return {'plcc': plcc,
-                'srocc': srocc,
-                'krocc': krocc,
-                'rmse': rmse}
 
