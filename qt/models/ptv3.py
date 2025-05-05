@@ -31,7 +31,6 @@ def offset2bincount(offset):
         offset, prepend=torch.tensor([0], device=offset.device, dtype=torch.long)
     )
 
-
 @torch.inference_mode()
 def offset2batch(offset):
     bincount = offset2bincount(offset)
