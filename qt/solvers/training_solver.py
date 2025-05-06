@@ -123,7 +123,8 @@ class Ptv3Solver(BaseSolver):
         for i, crit in enumerate(self.criterion):
             pred = preds[:, i]
             gt = labels[:, i]
-
+            print('pred: ', pred)
+            print('labels:', gt)
 
             pred_norm = self._min_max_normalize(pred)
             gt_norm = self._min_max_normalize(gt)

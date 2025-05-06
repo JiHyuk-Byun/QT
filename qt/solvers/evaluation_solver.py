@@ -28,8 +28,6 @@ class EvaluationSolver(BaseSolver):
         labels = batch['mos'].view(B, C)
         labels = labels.detach().cpu().numpy()
         
-        print(f'preds: {preds[:20]}')
-        print(f'MOS: {labels[:20]}')
         self._all_preds.append(preds)
         self._all_labels.append(labels)
 #        _, _, preds_normalized = self._logistic_4_fitting(preds)
