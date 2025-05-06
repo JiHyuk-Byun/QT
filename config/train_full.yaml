@@ -8,10 +8,10 @@ trainer:
   accumulate_grad_batches: 2
 
 data:
-  _base_: data/objaverse_multi_predict6_full
+  _base_: data/objaverse_full
 
 model:
-  _base_: model/qt_multi_predict6_full
+  _base_: model/qt_objaverse_full
 
 solver:
   _base_: solver/ptv3_full

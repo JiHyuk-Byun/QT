@@ -4,4 +4,5 @@ train_split: datasets/objaverse_full/train_split.csv
 test_split: datasets/objaverse_full/test_split.csv
 batch_size: 32
 eval_batch_size: 32
+criterion: ['artifact']
 
