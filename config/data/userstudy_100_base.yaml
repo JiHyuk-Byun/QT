@@ -4,6 +4,6 @@ train_split: datasets/objaverse_pcs_userstudy_even/train_split.csv
 test_split: datasets/objaverse_pcs_userstudy_even/test_split.csv
 
 criterion: ['preference'] # geometry, texture, material, plausibility, artifacts, preference
-num_workers: 4 
+num_workers: 2
 batch_size: 4
 eval_batch_size: 4
