@@ -1,4 +1,4 @@
-_base_: objaverse_sub5k
+_base_: objaverse_sub10k
 
 
 criterion: ['geometry', 'texture', 'material', 'plausibility', 'artifact', 'preference']
