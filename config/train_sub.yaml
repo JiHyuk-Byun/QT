@@ -9,7 +9,7 @@ trainer:
   detect_anomaly: false
 
 data:
-  _base_: data/objaverse_sub5k
+  _base_: data/objaverse_sub10k
 
 model:
   _base_: model/qt_objaverse_full
