@@ -1,0 +1,14 @@
+_base_: userstudy_100_base
+
+num_workers: 2
+criterion: ['geometry', 'texture', 'material', 'plausibility', 'artifact', 'preference'] # geometry, texture, material, plausibility, artifacts, preference
+
+dataset_config:
+  manual_seed: 123456
+  augments: null
+  grid_size: 0.02
+  hash_type: 'fnv'
+  return_grid_coord: true
+  
+  keys: ['coord', 'grid_coord', 'mos']
+  feat_keys: ['coord', 'color', 'normal', 'metallic', 'roughness']
