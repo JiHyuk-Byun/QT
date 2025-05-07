@@ -2,8 +2,7 @@ _base_: objaverse_sub10k
 
 
 criterion: ['geometry', 'texture', 'material', 'plausibility', 'artifact', 'preference']
-batch_size: 32
-eval_batch_size: 32
+
 
 dataset_config:
   manual_seed: 123456
