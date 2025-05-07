@@ -1,5 +1,8 @@
 _base_: userstudy_100_base
 
+num_workers: 4 
+criterion: ['preference'] # geometry, texture, material, plausibility, artifacts, preference
+
 dataset_config:
   manual_seed: 123456
   augments: null
