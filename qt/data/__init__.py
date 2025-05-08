@@ -1,3 +1,3 @@
 from .objaverse import ObjaverseDataModule
-from .objaverse import QA3DBaseDataModule
-from .objaverse import GC3DDataModule
+from .base import QA3DBaseDataModule
+from .gc3d import GC3DDataModule
