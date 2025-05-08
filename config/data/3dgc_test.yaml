@@ -1,4 +1,4 @@
-_base_: 3dgs_test_base
+_base_: 3dgc_test_base
 
 num_workers: 2
 batch_size: 4
