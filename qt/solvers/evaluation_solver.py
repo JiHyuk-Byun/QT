@@ -51,7 +51,8 @@ class EvaluationSolver(BaseSolver):
             return
         preds_all = preds_all.cpu()
         labels_all = labels_all.cpu()
-
+        print(len(preds_all))
+        print(len(labels_all))
         scores_no_fitted = {c: {} for c in self.criterion}
         scores_fitted = {c: {} for c in self.criterion}
         for i, crit in enumerate(self.criterion):
