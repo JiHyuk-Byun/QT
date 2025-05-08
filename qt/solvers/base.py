@@ -5,7 +5,7 @@ from typing import List
 import torch
 from lightning.pytorch import LightningModule, Callback
 from torchmetrics import Metric
-from torchmetrics.regression import PearsonCorrCoef, SpearmanCorrCoef, KendallRankCorrCoef
+from torchmetrics.regression import PearsonCorrCoef, SpearmanCorrCoef, KendallRankCorrCoef, MeanSquaredError
 import numpy as np
 from scipy.optimize import curve_fit
 
@@ -26,10 +26,10 @@ class BaseSolver(LightningModule):
         self.out_dir = engine.to_experiment_dir('outputs')
         os.makedirs(self.out_dir, exist_ok=True)
         
-        self.plcc_metric = MinMaxWrapper(PearsonCorrCoef) #PLCC()
-        self.srocc_metric = MinMaxWrapper(SpearmanCorrCoef) #SROCC()
-        self.krocc_metric = MinMaxWrapper(KendallRankCorrCoef, variant='b')#KROCC()
-        self.rmse_metric = MinMaxWrapper(RMSE)
+        self.plcc_metric = PearsonCorrCoef(compute_on_step=False, sync_on_compute=True) #PLCC()
+        self.srocc_metric = SpearmanCorrCoef(compute_on_step=False, sync_on_compute=True) #SROCC()
+        self.krocc_metric = KendallRankCorrCoef(variant='b',compute_on_step=False, sync_on_compute=True)#KROCC()
+        self.rmse_metric = MeanSquaredError(squared=False, compute_on_step=False, sync_on_compute=True)
         
         self._all_preds = []
         self._all_labels = []
@@ -104,15 +104,15 @@ class BaseSolver(LightningModule):
 
     def _evaluate_metrics(self, preds, labels):
         self.reset_metrics()
-        self.plcc_metric(preds, labels)
-        self.srocc_metric(preds, labels)
-        self.krocc_metric(preds, labels)
-        self.rmse_metric(preds, labels)
+        self.plcc_metric.update(preds, labels)
+        self.srocc_metric.update(preds, labels)
+        self.krocc_metric.update(preds, labels)
+        self.rmse_metric.update(preds, labels)
         
-        plcc = self.plcc_metric.compute()
-        srocc = self.srocc_metric.compute()
-        krocc = self.krocc_metric.compute()
-        rmse = self.rmse_metric.compute()
+        plcc = self.plcc_metric.compute().item()
+        srocc = self.srocc_metric.compute().item()
+        krocc = self.krocc_metric.compute().item()
+        rmse = self.rmse_metric.compute().item()
 
         return {'plcc': plcc,
                 'srocc': srocc,
