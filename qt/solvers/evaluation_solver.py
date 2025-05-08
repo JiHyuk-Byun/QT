@@ -6,12 +6,12 @@ import numpy as np
 
 import engine
 from .base import BaseSolver
-from qt.data import ObjaverseDataModule
+from qt.data import QA3DBaseDataModule
 
 
 class EvaluationSolver(BaseSolver):
 
-    def __init__(self, dm: ObjaverseDataModule, solver: BaseSolver):
+    def __init__(self, dm: QA3DBaseDataModule, solver: BaseSolver):
         super().__init__()
 
         self.dm = dm
