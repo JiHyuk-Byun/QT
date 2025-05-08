@@ -365,7 +365,6 @@ class SerializedAttention(PointModule):
         upcast_attention=True,
         upcast_softmax=True,
     ):
-        
         super().__init__()
         assert channels % num_heads == 0
         self.channels = channels
