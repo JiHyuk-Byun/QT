@@ -4,7 +4,7 @@ train_split: datasets/3DGC_dataset/train_split.csv
 test_split: datasets/3DGC_dataset/test_split.csv
 
 criterion: ['preference']
-num_workers: 2
+num_workers: 1
 batch_size: 4
 eval_batch_size: 4
 

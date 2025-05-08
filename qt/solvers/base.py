@@ -26,10 +26,10 @@ class BaseSolver(LightningModule):
         self.out_dir = engine.to_experiment_dir('outputs')
         os.makedirs(self.out_dir, exist_ok=True)
         
-        self.plcc_metric = PearsonCorrCoef() #PLCC()
-        self.srocc_metric = SpearmanCorrCoef() #SROCC()
-        self.krocc_metric = KendallRankCorrCoef(variant='b')#KROCC()
-        self.rmse_metric = RMSE()
+        self.plcc_metric = MinMaxWrapper(PearsonCorrCoef) #PLCC()
+        self.srocc_metric = MinMaxWrapper(SpearmanCorrCoef) #SROCC()
+        self.krocc_metric = MinMaxWrapper(KendallRankCorrCoef, variant='b')#KROCC()
+        self.rmse_metric = MinMaxWrapper(RMSE)
         
         self._all_preds = []
         self._all_labels = []
@@ -131,5 +131,20 @@ class _DefaultTaskCallback(Callback):
         solver.reset_metrics()
 
         
+class MinMaxWrapper(Metric):
+    def __init__(self, base_metric_cls, **kwargs):
+        super().__init__(compute_on_step=False)
+        self.base = base_metric_cls(**kwargs, compute_on_step=False)
+        self.add_state("preds",  default=[], dist_reduce_fx="cat")
+        self.add_state("targets",default=[], dist_reduce_fx="cat")
 
+    def update(self, preds, targets):
+        self.preds.append(preds.detach())
+        self.targets.append(targets.detach())
+
+    def compute(self):
+        p = torch.cat(self.preds);  t = torch.cat(self.targets)
+        p = (p - p.min()) / (p.max() - p.min() + 1e-8)
+        t = (t - t.min()) / (t.max() - t.min() + 1e-8)
+        return self.base(p, t)
         

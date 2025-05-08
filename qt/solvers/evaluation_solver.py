@@ -28,8 +28,13 @@ class EvaluationSolver(BaseSolver):
         labels = batch['mos'].view(B, C)
         labels = labels.detach().cpu().numpy()
         
-        self._all_preds.append(preds)
-        self._all_labels.append(labels)
+        self.plcc.update(preds, labels)
+        self.srocc.update(preds, labels)
+        self.krocc.update(preds, labels)
+        self.rmse.update(preds, labels)
+
+        # self._all_preds.append(preds)
+        # self._all_labels.append(labels)
 #        _, _, preds_normalized = self._logistic_4_fitting(preds)
 #        labels_normalized = self._logistic_4_fitting(labels)
         # print(f'preds_norm: {preds_normalized[:20]}')
@@ -39,32 +44,38 @@ class EvaluationSolver(BaseSolver):
 
     def on_validation_epoch_end(self):
         
-        preds = np.concatenate(self._all_preds, axis=0)
-        labels = np.concatenate(self._all_labels, axis=0)
-
-
-        scores_no_fitted = {c: {} for c in self.criterion}
-        scores_fitted = {c: {} for c in self.criterion}
         for i, crit in enumerate(self.criterion):
-            pred = preds[:, i]
-            gt = labels[:, i]
-            print('pred: ', len(pred))
-            print('labels:', len(gt))
+            plcc  = self.plcc.compute()   # 여기서 Lightning이 자동 all-gather
+            srocc = self.srocc.compute()
+            krocc = self.krocc.compute()
+            rmse  = self.rmse.compute()
 
-            pred_norm = self._min_max_normalize(pred)
-            gt_norm = self._min_max_normalize(gt)
-            pred_norm_t = torch.from_numpy(pred_norm).to(self.device)
-            gt_norm_t = torch.from_numpy(gt_norm).to(self.device)
-            
-            metrics_no_fitted = self._evaluate_metrics(pred_norm_t, gt_norm_t)
-            scores_no_fitted[crit] = metrics_no_fitted
+        # preds = np.concatenate(self._all_preds, axis=0)
+        # labels = np.concatenate(self._all_labels, axis=0)
 
-            _, _, pred_fitted = self._logistic_4_fitting(pred, gt)
-            preds_t = torch.from_numpy(pred_fitted).to(self.device)
-            gt_t = torch.from_numpy(gt).to(self.device)
+
+        # scores_no_fitted = {c: {} for c in self.criterion}
+        # scores_fitted = {c: {} for c in self.criterion}
+        # for i, crit in enumerate(self.criterion):
+        #     pred = preds[:, i]
+        #     gt = labels[:, i]
+        #     print('pred: ', pred)
+        #     print('labels:', gt)
+
+        #     pred_norm = self._min_max_normalize(pred)
+        #     gt_norm = self._min_max_normalize(gt)
+        #     pred_norm_t = torch.from_numpy(pred_norm).to(self.device)
+        #     gt_norm_t = torch.from_numpy(gt_norm).to(self.device)
             
-            metrics_fitted = self._evaluate_metrics(preds_t, gt_t)
-            scores_fitted[crit] = metrics_fitted
+        #     metrics_no_fitted = self._evaluate_metrics(pred_norm_t, gt_norm_t)
+        #     scores_no_fitted[crit] = metrics_no_fitted
+
+        #     _, _, pred_fitted = self._logistic_4_fitting(pred, gt)
+        #     preds_t = torch.from_numpy(pred_fitted).to(self.device)
+        #     gt_t = torch.from_numpy(gt).to(self.device)
+            
+        #     metrics_fitted = self._evaluate_metrics(preds_t, gt_t)
+        #     scores_fitted[crit] = metrics_fitted
         
         result_str_no_fitted = ''
         result_str_fitted = ''
