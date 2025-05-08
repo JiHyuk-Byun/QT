@@ -5,7 +5,7 @@ from typing import List
 import torch
 from lightning.pytorch import LightningModule, Callback
 from torchmetrics import Metric
-from torchmetrics.regression import PearsonCorrCoef, SpearmanCorrCoef, KendallRankCorrCoef, MeanSquaredError
+from torchmetrics import PearsonCorrCoef, SpearmanCorrCoef, KendallRankCorrCoef, MeanSquaredError
 import numpy as np
 from scipy.optimize import curve_fit
 
