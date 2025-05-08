@@ -22,6 +22,7 @@ class GC3DDataModule(QA3DBaseDataModule):
                  batch_size: int,
                  num_workers: int,
                  dataset_config: dict,
+                 n_prediction: int=1,
                  eval_batch_size: int = -1,
                  ):
         super().__init__('3dgc',
@@ -32,11 +33,13 @@ class GC3DDataModule(QA3DBaseDataModule):
                          num_workers,
                          eval_batch_size)
 
+        self.n_prediction = n_prediction
         self.dataset_config = dataset_config
     
     def _get_dataset(self, is_train: bool = True):
         split = 'train' if is_train else 'test'
-        return GC3DDataset(**self.dataset_config, root_dir=self.root_dir, train_split=self.train_split, test_split=self.test_split, criterion=self.criterion, split=split)
+        return GC3DDataset(**self.dataset_config, root_dir=self.root_dir, train_split=self.train_split, test_split=self.test_split, 
+                           criterion=self.criterion, n_prediction=self.n_prediction, split=split)
     
 class GC3DDataset(Dataset):
 
@@ -47,10 +50,11 @@ class GC3DDataset(Dataset):
                  split: str,
                  augments: Dict[str, dict],
 
+                 n_prediction: int = 1,
                  grid_size: int = 0.02,
                  hash_type: str = 'fnv',
                  return_grid_coord: bool = True,
-
+                 
                  keys=['coord', 'grid_coord', 'mos'],
                  feat_keys=['coord', 'normal'],
                  manual_seed: int = None):
@@ -68,7 +72,8 @@ class GC3DDataset(Dataset):
         self.manual_seed = manual_seed
 
         self.files = read_csv(self.split_path)
-        
+        self.n_prediction = n_prediction
+
         #Augmentation
         self.augment_fns = self._compose(augments)
 
@@ -123,7 +128,7 @@ class GC3DDataset(Dataset):
                 data_dict[feat] = data[feat][:, None].astype(np.float32)
             else:
                 data_dict[feat] = data[feat].astype(np.float32)
-        data_dict['mos'] = torch.tensor([MOSlabels],
+        data_dict['mos'] = torch.tensor([MOSlabels]*self.n_prediction,
                                    dtype=torch.float32)
         
         data_dict = pc_normalize(data_dict)
