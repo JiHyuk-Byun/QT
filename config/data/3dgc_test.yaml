@@ -3,6 +3,7 @@ _base_: 3dgc_test_base
 num_workers: 2
 batch_size: 4
 eval_batch_size: 4
+criterion: ['geometry', 'texture', 'material', 'plausibility', 'artifact', 'preference'] # Dataloader duplicates same mos to the each of criteria.
 
 dataset_config:
   manual_seed: 123456
