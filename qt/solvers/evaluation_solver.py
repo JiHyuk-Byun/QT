@@ -50,6 +50,7 @@ class EvaluationSolver(BaseSolver):
             gt = labels[:, i]
             print('pred: ', pred)
             print('labels:', gt)
+
             pred_norm = self._min_max_normalize(pred)
             gt_norm = self._min_max_normalize(gt)
             pred_norm_t = torch.from_numpy(pred_norm).to(self.device)
@@ -59,9 +60,9 @@ class EvaluationSolver(BaseSolver):
             scores_no_fitted[crit] = metrics_no_fitted
 
             _, _, pred_fitted = self._logistic_4_fitting(pred, gt)
-            
             preds_t = torch.from_numpy(pred_fitted).to(self.device)
             gt_t = torch.from_numpy(gt).to(self.device)
+            
             metrics_fitted = self._evaluate_metrics(preds_t, gt_t)
             scores_fitted[crit] = metrics_fitted
         

@@ -26,7 +26,6 @@ class QA3DBaseDataModule(LightningDataModule, ABC):
                  root_dir: str,
                  train_split: str,
                  test_split: str,
-                 criterion: List[str],
                  batch_size: int,
                  num_workers: int,
                  eval_batch_size: int = -1):
@@ -37,8 +36,6 @@ class QA3DBaseDataModule(LightningDataModule, ABC):
         self.train_split = train_split
         self.test_split = test_split
         
-        self.criterion = criterion
-        self.criterion_idxs = [CRITERIA[c] for c in criterion]
         self.batch_size = batch_size
         self.num_workers = num_workers
         self.eval_batch_size = eval_batch_size
