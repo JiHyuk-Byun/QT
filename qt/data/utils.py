@@ -30,6 +30,7 @@ def pc_normalize(data_dict):
     return data_dict
 
 def feat_normalize(data_dict):
+    eps = 1e-8
     # if 'color' in data_dict.keys():
     #     data_dict['color'] = (data_dict['color'] - 0.5) * 2
     if 'metallic' in data_dict:

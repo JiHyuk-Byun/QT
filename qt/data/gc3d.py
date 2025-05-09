@@ -104,6 +104,12 @@ class GC3DDataset(Dataset):
     
 
     def __getitem__(self, idx):
+        '''
+        coord: almost -1~1
+        color: 0~1
+        normal: -1~1
+        metallic&roughness: 0~1
+        '''
         file_path = osp.join(self.root_dir, self.files[idx][0], 'features.npy')
         MOSlabels = self.files[idx][1]
 
@@ -133,9 +139,9 @@ class GC3DDataset(Dataset):
                                    dtype=torch.float32)
         
         data_dict = pc_normalize(data_dict)
-        data_dict = feat_normalize(data_dict)
+        #data_dict = feat_normalize(data_dict) Already normalized
         #data_dict = mos_normalize(data_dict)
-
+        
         #Augmentation
         for fn in self.augment_fns:
             data_dict = fn(data_dict)

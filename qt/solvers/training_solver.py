@@ -96,17 +96,14 @@ class Ptv3Solver(BaseSolver):
     
     def validation_step(self, batch, batch_idx):
 
-        outputs = self(batch)
-        preds = outputs
-        B, C = preds.shape
-        labels = batch['mos']
-        labels = labels.view(B, C)
-
-        print(f'preds: {preds[:20]}')
-        print(f'MOS: {labels[:20]}')
-    
-        self._all_preds.append(preds.detach().cpu())
-        self._all_labels.append(labels.detach().cpu())
+        outputs = self.solver(batch)
+        preds = outputs.detach()
+        labels = batch['mos'].view_as(preds)
+        labels = labels.detach()
+        
+        
+        self._all_preds.append(preds)
+        self._all_labels.append(labels)
         # preds_normalized = self._min_max_normalize(preds)
         # labels_normalized = self._min_max_normalize(labels)
         # print(f'preds_norm: {preds_normalized[:20]}')
@@ -115,21 +112,28 @@ class Ptv3Solver(BaseSolver):
 
     def on_validation_epoch_end(self):
 
-        preds = np.concatenate(self._all_preds, axis=0)
-        labels = np.concatenate(self._all_labels, axis=0)
+        preds_local = torch.cat(self._all_preds, dim=0)
+        labels_local = torch.cat(self._all_labels, dim=0)
 
+        preds_all = self.all_gather(preds_local)
+        labels_all = self.all_gather(labels_local)
+
+        if self.global_rank != 0:
+            return
+        preds_all = preds_all.cpu()
+        labels_all = labels_all.cpu()
         sroccs = []
 
         for i, crit in enumerate(self.criterion):
-            pred = preds[:, i]
-            gt = labels[:, i]
+            pred = preds_all[:, i].numpy()
+            gt = labels_all[:, i].numpy()
             print('pred: ', pred)
             print('labels:', gt)
 
             pred_norm = self._min_max_normalize(pred)
             gt_norm = self._min_max_normalize(gt)
-            pred_norm_t = torch.from_numpy(pred_norm).to(self.device)
-            gt_norm_t = torch.from_numpy(gt_norm).to(self.device)
+            pred_norm_t = torch.from_numpy(pred_norm)
+            gt_norm_t = torch.from_numpy(gt_norm)
             
             metrics_no_fitted = self._evaluate_metrics(pred_norm_t, gt_norm_t)
             for k, v in metrics_no_fitted.items():
@@ -139,8 +143,8 @@ class Ptv3Solver(BaseSolver):
 
             _, _, pred_fitted = self._logistic_4_fitting(pred, gt)
             
-            preds_t = torch.from_numpy(pred_fitted).to(self.device)
-            gt_t = torch.from_numpy(gt).to(self.device)
+            preds_t = torch.from_numpy(pred_fitted)
+            gt_t = torch.from_numpy(gt)
             metrics_fitted = self._evaluate_metrics(preds_t, gt_t)
             for k, v in metrics_fitted.items():
                 self.log(f'val/{crit}/{k}_fitted', v, rank_zero_only=True, on_epoch=True, sync_dist=True)
