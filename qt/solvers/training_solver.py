@@ -134,7 +134,8 @@ class Ptv3Solver(BaseSolver):
             gt_norm = self._min_max_normalize(gt)
             pred_norm_t = torch.from_numpy(pred_norm)
             gt_norm_t = torch.from_numpy(gt_norm)
-            
+            print("shape1:",pred_norm_t.shape)
+            print("shape2",gt_norm_t.shape)
             metrics_no_fitted = self._evaluate_metrics(pred_norm_t, gt_norm_t)
             for k, v in metrics_no_fitted.items():
                 self.log(f'val/{crit}/{k}_no_fitted', v, rank_zero_only=True, on_epoch=True, sync_dist=True)
