@@ -120,8 +120,10 @@ class Ptv3Solver(BaseSolver):
 
         if self.global_rank != 0:
             return
-        preds_all = preds_all.cpu()
-        labels_all = labels_all.cpu()
+        
+        assert len(self.criterion) == preds_all.shape[-1]
+        preds_all = preds_all.reshape(-1, len(self.criterion)).cpu()
+        labels_all = labels_all.reshape(-1, len(self.criterion)).cpu()
         sroccs = []
 
         for i, crit in enumerate(self.criterion):

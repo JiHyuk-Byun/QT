@@ -49,8 +49,9 @@ class EvaluationSolver(BaseSolver):
 
         if self.global_rank != 0:
             return
-        preds_all = preds_all.cpu()
-        labels_all = labels_all.cpu()
+        assert len(self.criterion) == preds_all.shape[-1]
+        preds_all = preds_all.reshape(-1, len(self.criterion)).cpu()
+        labels_all = labels_all.reshape(-1, len(self.criterion)).cpu()
 
         scores_no_fitted = dict()
         scores_fitted = dict()
