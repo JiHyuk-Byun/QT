@@ -141,13 +141,13 @@ class Ptv3Solver(BaseSolver):
             
             sroccs.append(metrics_no_fitted['srocc'])
 
-            _, _, pred_fitted = self._logistic_4_fitting(pred.detach().cpu().numpy(), gt.detach().cpu().numpy())
+            # _, _, pred_fitted = self._logistic_4_fitting(pred.detach().cpu().numpy(), gt.detach().cpu().numpy())
             
-            preds_t = torch.from_numpy(pred_fitted).to(self.device)
-            gt_t = gt.float()
-            metrics_fitted = self._evaluate_metrics(preds_t, gt_t)
-            for k, v in metrics_fitted.items():
-                self.log(f'val/{crit}/{k}_fitted', v, rank_zero_only=True, on_epoch=True, sync_dist=True)
+            # preds_t = torch.from_numpy(pred_fitted).to(self.device)
+            # gt_t = gt.float()
+            # metrics_fitted = self._evaluate_metrics(preds_t, gt_t)
+            # for k, v in metrics_fitted.items():
+            #     self.log(f'val/{crit}/{k}_fitted', v, rank_zero_only=True, on_epoch=True, sync_dist=True)
         
         mean_srocc = torch.stack(sroccs).mean()
         self.track_score(mean_srocc)
