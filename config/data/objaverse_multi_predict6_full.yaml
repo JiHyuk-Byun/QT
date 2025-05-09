@@ -1,6 +1,5 @@
 _base_: objaverse_full
 
-
 criterion: ['geometry', 'texture', 'material', 'plausibility', 'artifact', 'preference']
 
 dataset_config:
