@@ -112,12 +112,6 @@ class ObjaverseDataset(Dataset):
     
 
     def __getitem__(self, idx):
-        '''
-        coord: unbounded
-        color: 0~1
-        normal: -1~1
-        metallic&roughenss: 0~255
-        '''
         file_path = osp.join(self.root_dir, self.files[idx][0])
         MOSlabels = self.files[idx][1:]
 

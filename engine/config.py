@@ -51,9 +51,11 @@ def instantiate(cfg: Union[DictConfig, dict],
     ### dict config to dict
     params_dict = OmegaConf.to_container(params, resolve=True)
     params_dict = _merge_dict(params_dict, overrides)
-
+    
     _delete_reserved_keys_(params_dict)
+    
     unknown_keys = _get_unknown_param_keys(target, params_dict)
+
     if remove_unknown_params:
         params_dict = _filter_unknown_params(params_dict, unknown_keys)
     elif len(unknown_keys) > 0 and not allow_unknown_params:
