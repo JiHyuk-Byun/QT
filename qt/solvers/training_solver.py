@@ -122,31 +122,29 @@ class Ptv3Solver(BaseSolver):
             return
         
         assert len(self.criterion) == preds_all.shape[-1]
-        preds_all = preds_all.reshape(-1, len(self.criterion)).cpu()
-        labels_all = labels_all.reshape(-1, len(self.criterion)).cpu()
+        preds_all = preds_all.reshape(-1, len(self.criterion))
+        labels_all = labels_all.reshape(-1, len(self.criterion))
         sroccs = []
 
         for i, crit in enumerate(self.criterion):
-            pred = preds_all[:, i].numpy()
-            gt = labels_all[:, i].numpy()
+            pred = preds_all[:, i]
+            gt = labels_all[:, i]
             print('pred: ', pred)
             print('labels:', gt)
 
             pred_norm = self._min_max_normalize(pred)
             gt_norm = self._min_max_normalize(gt)
-            pred_norm_t = torch.from_numpy(pred_norm)
-            gt_norm_t = torch.from_numpy(gt_norm)
 
-            metrics_no_fitted = self._evaluate_metrics(pred_norm_t, gt_norm_t)
+            metrics_no_fitted = self._evaluate_metrics(pred_norm, gt_norm)
             for k, v in metrics_no_fitted.items():
                 self.log(f'val/{crit}/{k}_no_fitted', v, rank_zero_only=True, on_epoch=True, sync_dist=True)
             
             sroccs.append(metrics_no_fitted['srocc'])
 
-            _, _, pred_fitted = self._logistic_4_fitting(pred, gt)
+            _, _, pred_fitted = self._logistic_4_fitting(pred.detach().cpu().numpy(), gt.detach().cpu().numpy())
             
-            preds_t = torch.from_numpy(pred_fitted)
-            gt_t = torch.from_numpy(gt)
+            preds_t = torch.from_numpy(pred_fitted).to(self.device)
+            gt_t = gt.float()
             metrics_fitted = self._evaluate_metrics(preds_t, gt_t)
             for k, v in metrics_fitted.items():
                 self.log(f'val/{crit}/{k}_fitted', v, rank_zero_only=True, on_epoch=True, sync_dist=True)
