@@ -117,10 +117,10 @@ class Ptv3Solver(BaseSolver):
 
         preds_all = self.all_gather(preds_local)
         labels_all = self.all_gather(labels_local)
-
+        print("bf",preds_all)
         if self.global_rank != 0:
             return
-        
+        print(preds_all)
         assert len(self.criterion) == preds_all.shape[-1]
         preds_all = preds_all.reshape(-1, len(self.criterion))
         labels_all = labels_all.reshape(-1, len(self.criterion))
