@@ -104,9 +104,9 @@ class Ptv3Solver(BaseSolver):
 
         print(f'preds: {preds[:20]}')
         print(f'MOS: {labels[:20]}')
-        
-        self._all_preds.append(preds)
-        self._all_labels.append(labels)
+
+        self._all_preds.append(preds.detach().cpu())
+        self._all_labels.append(labels.detach().cpu())
         # preds_normalized = self._min_max_normalize(preds)
         # labels_normalized = self._min_max_normalize(labels)
         # print(f'preds_norm: {preds_normalized[:20]}')
@@ -115,42 +115,34 @@ class Ptv3Solver(BaseSolver):
 
     def on_validation_epoch_end(self):
 
-        preds_local = torch.cat(self._all_preds, dim=0)
-        labels_local = torch.cat(self._all_labels, dim=0)
-        # print('local', preds_local)
-        # preds_all = self.all_gather(preds_local)
-        # labels_all = self.all_gather(labels_local)
+        preds = np.concatenate(self._all_preds, axis=0)
+        labels = np.concatenate(self._all_labels, axis=0)
 
-        # if self.global_rank != 0:
-        #     return
-        # print(preds_all)
-        # assert len(self.criterion) == preds_all.shape[-1]
-        # preds_all = preds_all.reshape(-1, len(self.criterion))
-        # labels_all = labels_all.reshape(-1, len(self.criterion))
         sroccs = []
 
         for i, crit in enumerate(self.criterion):
-            pred = preds_local[:, i]
-            gt = labels_local[:, i]
-            print('pred: ', pred)
-            print('labels:', gt)
+            pred = preds[:, i]
+            gt = labels[:, i]
+
 
             pred_norm = self._min_max_normalize(pred)
             gt_norm = self._min_max_normalize(gt)
-
-            metrics_no_fitted = self._evaluate_metrics(pred_norm, gt_norm)
+            pred_norm_t = torch.from_numpy(pred_norm).to(self.device)
+            gt_norm_t = torch.from_numpy(gt_norm).to(self.device)
+            
+            metrics_no_fitted = self._evaluate_metrics(pred_norm_t, gt_norm_t)
             for k, v in metrics_no_fitted.items():
                 self.log(f'val/{crit}/{k}_no_fitted', v, rank_zero_only=True, on_epoch=True, sync_dist=True)
             
             sroccs.append(metrics_no_fitted['srocc'])
 
-            # _, _, pred_fitted = self._logistic_4_fitting(pred.detach().cpu().numpy(), gt.detach().cpu().numpy())
+            _, _, pred_fitted = self._logistic_4_fitting(pred, gt)
             
-            # preds_t = torch.from_numpy(pred_fitted).to(self.device)
-            # gt_t = gt.float()
-            # metrics_fitted = self._evaluate_metrics(preds_t, gt_t)
-            # for k, v in metrics_fitted.items():
-            #     self.log(f'val/{crit}/{k}_fitted', v, rank_zero_only=True, on_epoch=True, sync_dist=True)
+            preds_t = torch.from_numpy(pred_fitted).to(self.device)
+            gt_t = torch.from_numpy(gt).to(self.device)
+            metrics_fitted = self._evaluate_metrics(preds_t, gt_t)
+            for k, v in metrics_fitted.items():
+                self.log(f'val/{crit}/{k}_fitted', v, rank_zero_only=True, on_epoch=True, sync_dist=True)
         
         mean_srocc = torch.stack(sroccs).mean()
         self.track_score(mean_srocc)

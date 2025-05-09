@@ -5,7 +5,7 @@ from typing import List
 import torch
 from lightning.pytorch import LightningModule, Callback
 from torchmetrics import Metric
-from torchmetrics import PearsonCorrCoef, SpearmanCorrCoef, KendallRankCorrCoef, MeanSquaredError
+from torchmetrics.regression import PearsonCorrCoef, SpearmanCorrCoef, KendallRankCorrCoef
 import numpy as np
 from scipy.optimize import curve_fit
 
@@ -26,10 +26,10 @@ class BaseSolver(LightningModule):
         self.out_dir = engine.to_experiment_dir('outputs')
         os.makedirs(self.out_dir, exist_ok=True)
         
-        self.plcc_metric = PearsonCorrCoef(sync_on_compute=True) #PLCC()
-        self.srocc_metric = SpearmanCorrCoef(sync_on_compute=True) #SROCC()
-        self.krocc_metric = KendallRankCorrCoef(variant='b',sync_on_compute=True)#KROCC()
-        self.rmse_metric = MeanSquaredError(squared=False, sync_on_compute=True)
+        self.plcc_metric = PearsonCorrCoef() #PLCC()
+        self.srocc_metric = SpearmanCorrCoef() #SROCC()
+        self.krocc_metric = KendallRankCorrCoef(variant='b')#KROCC()
+        self.rmse_metric = RMSE()
         
         self._all_preds = []
         self._all_labels = []
@@ -72,7 +72,7 @@ class BaseSolver(LightningModule):
         checkpoint = torch.load(checkpoint_path)
         
         state_dict = checkpoint['state_dict']
-        self.load_state_dict(state_dict, strict=True)
+        self.load_state_dict(state_dict, strict=False)
 
         #self.checkpoint_epoch = checkpoint['epoch']
 
@@ -87,9 +87,8 @@ class BaseSolver(LightningModule):
         pass
     
     @torch.no_grad()
-    def _min_max_normalize(self, mos_array: torch.Tensor) -> torch.Tensor:
-        eps = 1e-8
-        return (mos_array - mos_array.min()) / (mos_array.max() - mos_array.min() + eps) * 100
+    def _min_max_normalize(self, mos_array):
+        return (mos_array - mos_array.min()) / (mos_array.max() - mos_array.min()) * 100
     
     @torch.no_grad()
     def _logistic_4_fitting(self, x, y):
@@ -105,16 +104,10 @@ class BaseSolver(LightningModule):
 
     def _evaluate_metrics(self, preds, labels):
         self.reset_metrics()
-
-        self.plcc_metric.to(preds.device)
-        self.srocc_metric.to(preds.device)
-        self.krocc_metric.to(preds.device)
-        self.rmse_metric.to(preds.device)
-
-        self.plcc_metric.update(preds, labels)
-        self.srocc_metric.update(preds, labels)
-        self.krocc_metric.update(preds, labels)
-        self.rmse_metric.update(preds, labels)
+        self.plcc_metric(preds, labels)
+        self.srocc_metric(preds, labels)
+        self.krocc_metric(preds, labels)
+        self.rmse_metric(preds, labels)
         
         plcc = self.plcc_metric.compute()
         srocc = self.srocc_metric.compute()
@@ -138,20 +131,5 @@ class _DefaultTaskCallback(Callback):
         solver.reset_metrics()
 
         
-class MinMaxWrapper(Metric):
-    def __init__(self, base_metric_cls, **kwargs):
-        super().__init__(compute_on_step=False)
-        self.base = base_metric_cls(**kwargs, compute_on_step=False)
-        self.add_state("preds",  default=[], dist_reduce_fx="cat")
-        self.add_state("targets",default=[], dist_reduce_fx="cat")
 
-    def update(self, preds, targets):
-        self.preds.append(preds.detach())
-        self.targets.append(targets.detach())
-
-    def compute(self):
-        p = torch.cat(self.preds);  t = torch.cat(self.targets)
-        p = (p - p.min()) / (p.max() - p.min() + 1e-8)
-        t = (t - t.min()) / (t.max() - t.min() + 1e-8)
-        return self.base(p, t)
         
