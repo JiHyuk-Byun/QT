@@ -114,21 +114,21 @@ class Ptv3Solver(BaseSolver):
 
         preds_local = torch.cat(self._all_preds, dim=0)
         labels_local = torch.cat(self._all_labels, dim=0)
-        print('local', preds_local)
-        preds_all = self.all_gather(preds_local)
-        labels_all = self.all_gather(labels_local)
-        print("bf",preds_all)
-        if self.global_rank != 0:
-            return
-        print(preds_all)
-        assert len(self.criterion) == preds_all.shape[-1]
-        preds_all = preds_all.reshape(-1, len(self.criterion))
-        labels_all = labels_all.reshape(-1, len(self.criterion))
+        # print('local', preds_local)
+        # preds_all = self.all_gather(preds_local)
+        # labels_all = self.all_gather(labels_local)
+
+        # if self.global_rank != 0:
+        #     return
+        # print(preds_all)
+        # assert len(self.criterion) == preds_all.shape[-1]
+        # preds_all = preds_all.reshape(-1, len(self.criterion))
+        # labels_all = labels_all.reshape(-1, len(self.criterion))
         sroccs = []
 
         for i, crit in enumerate(self.criterion):
-            pred = preds_all[:, i]
-            gt = labels_all[:, i]
+            pred = preds_local[:, i]
+            gt = labels_local[:, i]
             print('pred: ', pred)
             print('labels:', gt)
 
