@@ -1,6 +1,6 @@
 _base_: userstudy_100_base
 
-num_workers: 2
+num_workers: 1
 criterion: ['geometry', 'texture', 'material', 'plausibility', 'artifact', 'preference'] # geometry, texture, material, plausibility, artifacts, preference
 
 dataset_config:

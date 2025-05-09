@@ -52,8 +52,8 @@ class EvaluationSolver(BaseSolver):
         preds_all = preds_all.cpu()
         labels_all = labels_all.cpu()
 
-        scores_no_fitted = {c: {} for c in self.criterion}
-        scores_fitted = {c: {} for c in self.criterion}
+        scores_no_fitted = dict()
+        scores_fitted = dict()
         for i, crit in enumerate(self.criterion):
             pred = preds_all[:, i].numpy()
             gt = labels_all[:, i].numpy()
