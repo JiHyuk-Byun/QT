@@ -76,7 +76,7 @@ class Ptv3Solver(BaseSolver):
         return outputs
     
     def training_step(self, batch, batch_idx):
-        #print(batch['feat'].shape)
+        print(batch['feat'].shape)
         outputs = self(batch)
         preds = outputs
         B, C = preds.shape
@@ -97,10 +97,13 @@ class Ptv3Solver(BaseSolver):
     def validation_step(self, batch, batch_idx):
 
         outputs = self(batch)
-        preds = outputs.detach()
-        labels = batch['mos'].view_as(preds)
-        labels = labels.detach()
-        
+        preds = outputs
+        B, C = preds.shape
+        labels = batch['mos']
+        labels = labels.view(B, C)
+
+        print(f'preds: {preds[:20]}')
+        print(f'MOS: {labels[:20]}')
         
         self._all_preds.append(preds)
         self._all_labels.append(labels)
