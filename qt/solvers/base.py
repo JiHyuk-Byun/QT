@@ -26,10 +26,10 @@ class BaseSolver(LightningModule):
         self.out_dir = engine.to_experiment_dir('outputs')
         os.makedirs(self.out_dir, exist_ok=True)
         
-        self.plcc_metric = PearsonCorrCoef(sync_on_compute=True) #PLCC()
-        self.srocc_metric = SpearmanCorrCoef(sync_on_compute=True) #SROCC()
-        self.krocc_metric = KendallRankCorrCoef(variant='b',sync_on_compute=True)#KROCC()
-        self.rmse_metric = MeanSquaredError(squared=False, sync_on_compute=True)
+        self.plcc_metric = PearsonCorrCoef(sync_on_compute=False) #PLCC()
+        self.srocc_metric = SpearmanCorrCoef(sync_on_compute=False) #SROCC()
+        self.krocc_metric = KendallRankCorrCoef(variant='b',sync_on_compute=False)#KROCC()
+        self.rmse_metric = MeanSquaredError(squared=False, sync_on_compute=False)
         
         self._all_preds = []
         self._all_labels = []
