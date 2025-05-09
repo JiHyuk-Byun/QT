@@ -114,7 +114,7 @@ class Ptv3Solver(BaseSolver):
 
         preds_local = torch.cat(self._all_preds, dim=0)
         labels_local = torch.cat(self._all_labels, dim=0)
-
+        print('local', preds_local)
         preds_all = self.all_gather(preds_local)
         labels_all = self.all_gather(labels_local)
         print("bf",preds_all)
