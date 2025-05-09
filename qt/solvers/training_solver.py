@@ -76,7 +76,7 @@ class Ptv3Solver(BaseSolver):
         return outputs
     
     def training_step(self, batch, batch_idx):
-        print(batch['feat'].shape)
+        #print(batch['feat'].shape)
         outputs = self(batch)
         preds = outputs
         B, C = preds.shape
