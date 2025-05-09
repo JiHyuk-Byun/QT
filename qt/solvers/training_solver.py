@@ -96,7 +96,7 @@ class Ptv3Solver(BaseSolver):
     
     def validation_step(self, batch, batch_idx):
 
-        outputs = self.solver(batch)
+        outputs = self(batch)
         preds = outputs.detach()
         labels = batch['mos'].view_as(preds)
         labels = labels.detach()
