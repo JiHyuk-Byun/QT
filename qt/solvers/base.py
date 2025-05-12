@@ -104,6 +104,10 @@ class BaseSolver(LightningModule):
 
     def _evaluate_metrics(self, preds, labels):
         self.reset_metrics()
+
+        for m in (self.plcc_metric, self.srocc_metric, self.krocc_metric, self.rmse_metric):
+            m.to(preds.device)
+
         self.plcc_metric(preds, labels)
         self.srocc_metric(preds, labels)
         self.krocc_metric(preds, labels)
