@@ -8,7 +8,7 @@ criterion: ['geometry', 'texture', 'material', 'plausibility', 'artifact', 'pref
 dataset_config:
   manual_seed: 123456
   augments: null
-  grid_size: 0.01
+  grid_size: 0.005
   hash_type: 'fnv'
   return_grid_coord: true
   
