@@ -1,0 +1,8 @@
+_base_: qt_objaverse_full
+
+in_channels: 11
+
+enable_flash: true
+n_prediction: 6
+multi_scale: true
+head_mlp_channels: [992, 512, 256, 128]

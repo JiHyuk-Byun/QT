@@ -5,14 +5,14 @@ trainer:
   check_val_every_n_epoch: 4
   log_every_n_steps: 50
   precision: 32 #16-mixed
-  accumulate_grad_batches: 4
+  accumulate_grad_batches: 2
   detect_anomaly: false
 
 data:
   _base_: data/objaverse_multi_predict6_full
 
 model:
-  _base_: model/qt_multi_predict6_full
+  _base_: model/qt_multi_predict6_multiscale_full
 
 solver:
   _base_: solver/ptv3_full
