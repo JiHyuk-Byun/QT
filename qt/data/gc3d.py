@@ -26,7 +26,7 @@ class GC3DDataModule(QA3DBaseDataModule):
                  dataset_config: dict,
                  eval_batch_size: int = -1,
                  ):
-        super().__init__('3dgc',
+        super().__init__('gc3d',
                          root_dir,
                          train_split,
                          test_split,
@@ -68,7 +68,7 @@ class GC3DDataset(Dataset):
         self.train_split = osp.join(root_dir, 'train_split.csv') if train_split is None else train_split
         self.test_split = osp.join(root_dir, 'test_split.csv') if test_split is None else test_split
         
-        self.split_path = self.train_split if split == 'train' else self.test_split
+        self.split_path = self.train_split if self.split == 'train' else self.test_split
         
         self.manual_seed = manual_seed
 
@@ -84,7 +84,7 @@ class GC3DDataset(Dataset):
         self.collect_keys = Collect(keys=keys, feat_keys=feat_keys)
         # after collect, e.g. key: [coord, grid_coord, 'mos', 'offset', 'feat'(which is concatnated)] 
     
-    def _compose(self, augments: Dict[str, dict]):
+    def _compose(self, augments: Dict[str, dict]) -> list:
         
         transform_fns = []
         if augments == None:
@@ -102,17 +102,17 @@ class GC3DDataset(Dataset):
     def __len__(self):
         return len(self.files)
     
-
     def __getitem__(self, idx):
         '''
         coord: almost -1~1
         color: 0~1
         normal: -1~1
-        metallic&roughness: 0~1
+        metallic&roughness: 0~1 (No need to normalize)
         '''
         file_path = osp.join(self.root_dir, self.files[idx][0], 'features.npy')
         MOSlabels = self.files[idx][1]
 
+        # Safe load
         for attempt in range(MAX_RETRY):
             try:
                 data = np.load(file_path, allow_pickle=True).item()
@@ -131,15 +131,15 @@ class GC3DDataset(Dataset):
         data_dict = dict()
         # Load features.
         for feat in self.feat_keys:
+            assert feat in ['coord', 'color', 'normal','metallic', 'roughness'], f'Invalid feature is in feat_keys, feature type: {feat}'
             if feat in ['metallic', 'roughness']:
                 data_dict[feat] = data[feat][:, None].astype(np.float32)
             else:
                 data_dict[feat] = data[feat].astype(np.float32)
-        data_dict['mos'] = torch.tensor([MOSlabels]*len(self.criterion),
+        data_dict['mos'] = torch.tensor([MOSlabels]*len(self.criterion), # to make align with pre-trained sub-criteria model.
                                    dtype=torch.float32)
         
         data_dict = pc_normalize(data_dict)
-        #data_dict = feat_normalize(data_dict) Already normalized
         #data_dict = mos_normalize(data_dict)
         
         #Augmentation
@@ -148,6 +148,7 @@ class GC3DDataset(Dataset):
 
         # Grid sampling
         data_dict = self.grid_sampler(data_dict)
+        # Shuffle the order of pc and convert it to Tensor
         data_dict = to_tensor(shuffle_point(data_dict))
 
         return self.collect_keys(data_dict)
