@@ -348,7 +348,6 @@ class RPE(torch.nn.Module):
         out = out.permute(0, 3, 1, 2)  # (N, K, K, H) -> (N, H, K, K)
         return out
 
-
 class SerializedAttention(PointModule):
     def __init__(
         self,
