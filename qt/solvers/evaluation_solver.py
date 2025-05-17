@@ -84,7 +84,7 @@ class EvaluationSolver(BaseSolver):
         
         result = f'---No fitted Result---\n {result_str_no_fitted}' + '\n' + f'---fitted Result---\n {result_str_fitted}'
         print(result)
-        out_path = osp.join(self.out_dir, f'eval_results_{self.criterion}.txt')
+        out_path = osp.join(self.output_dir, f'eval_results_{self.criterion}.txt')
         
         with open(out_path, 'w') as f:
             f.write(result)
