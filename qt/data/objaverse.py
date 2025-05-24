@@ -24,7 +24,7 @@ RETRY_SLEEP = 0.1
 
 class ObjaverseDataModule(QA3DBaseDataModule):
 
-    def __init__(self, 
+    def __init__(self,
                  root_dir: str,
                  train_split: str,
                  test_split: str,
@@ -33,8 +33,9 @@ class ObjaverseDataModule(QA3DBaseDataModule):
                  num_workers: int,
                  dataset_config: dict,
                  eval_batch_size: int = -1,
+                 name: str = 'objaverse'
                  ):
-        super().__init__('objaverse',
+        super().__init__(name,
                          root_dir,
                          train_split,
                          test_split,

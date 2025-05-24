@@ -25,8 +25,9 @@ class GC3DDataModule(QA3DBaseDataModule):
                  num_workers: int,
                  dataset_config: dict,
                  eval_batch_size: int = -1,
+                 name: str = 'gc3d'
                  ):
-        super().__init__('gc3d',
+        super().__init__(name,
                          root_dir,
                          train_split,
                          test_split,
