@@ -139,7 +139,7 @@ class ObjaverseDataset(Dataset):
                 data_dict[feat] = data[feat].astype(np.float32)
         data_dict['mos'] = torch.tensor([MOSlabels[idx] for idx in self.criterion_idxs],
                                    dtype=torch.float32)
-        
+
         data_dict = pc_normalize(data_dict)
         data_dict = feat_normalize(data_dict)
         #data_dict = mos_normalize(data_dict)
