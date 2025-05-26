@@ -101,37 +101,38 @@ vlm_cfg = engine.load_config(osp.join('config/data', f'{args.objaverse}.yaml'))
 userstudy_cfg = engine.load_config(osp.join('config/data', f'{args.userstudy}.yaml'))
 pl.seed_everything(cfg.get('seed', 123456))
 
-model = engine.instantiate(cfg.model)
-dm: QA3DBaseDataModule = engine.instantiate(vlm_cfg)
-solver: BaseSolver = engine.instantiate(cfg.solver, dm=dm, model=model)
+if not args.use_existing:
+    model = engine.instantiate(cfg.model)
+    dm: QA3DBaseDataModule = engine.instantiate(vlm_cfg)
+    solver: BaseSolver = engine.instantiate(cfg.solver, dm=dm, model=model)
 
-best_ckpt_path = engine.find_best_checkpoint_path(cfg)
-solver.load_checkpoint(best_ckpt_path)
+    best_ckpt_path = engine.find_best_checkpoint_path(cfg)
+    solver.load_checkpoint(best_ckpt_path)
 
-solver.eval().to(args.device)
+    solver.eval().to(args.device)
 
-# ──────────────────────────────────────────────
-# 3. 데이터 로더 준비
-# ──────────────────────────────────────────────
+    # ──────────────────────────────────────────────
+    # 3. 데이터 로더 준비
+    # ──────────────────────────────────────────────
 
-domains = [
-#    ("objaverse/vlm_train",  vlm_cfg, "train"),   # cfg, split tag
-    ("objaverse/vlm_val", vlm_cfg, "validate"),
-    ("objaverse/userstudy", userstudy_cfg, "validate"),
-    ("gc3d", gc3d_cfg, "validate"),
-]
+    domains = [
+    #    ("objaverse/vlm_train",  vlm_cfg, "train"),   # cfg, split tag
+        ("objaverse/vlm_val", vlm_cfg, "validate"),
+        ("objaverse/userstudy", userstudy_cfg, "validate"),
+        ("gc3d", gc3d_cfg, "validate"),
+    ]
 
-for tag, cfg_dm, stage in domains:
-    print(f'{tag} processing...')
-    dm = engine.instantiate(cfg_dm)
-    dm.name = tag                                 # DM 내부 name 덮어쓰기
-    dm.setup(stage=stage)
+    for tag, cfg_dm, stage in domains:
+        print(f'{tag} processing...')
+        dm = engine.instantiate(cfg_dm)
+        dm.name = tag                                 # DM 내부 name 덮어쓰기
+        dm.setup(stage=stage)
 
-    feat_eval = FeatEvalSolver(dm, solver, tag, enable_metrics= args.enable_metrics)   # tag 넘김
-    trainer = pl.Trainer(accelerator="gpu", devices=[0], logger=False)
-    loader = dm.train_dataloader() if stage == "train" else dm.val_dataloader()
-    print(f'size: {len(loader.dataset)}')
-    trainer.validate(feat_eval, dataloaders=loader)
+        feat_eval = FeatEvalSolver(dm, solver, tag, enable_metrics= args.enable_metrics)   # tag 넘김
+        trainer = pl.Trainer(accelerator="gpu", devices=[0], logger=False)
+        loader = dm.train_dataloader() if stage == "train" else dm.val_dataloader()
+        print(f'size: {len(loader.dataset)}')
+        trainer.validate(feat_eval, dataloaders=loader)
 
 # ──────────────────────────────────────────────
 # 4. Visualization
@@ -148,6 +149,7 @@ tags = [
     "gc3d"]
 markers = ["o", "s", "^", "X"]          # 4 domains
 score_colors = cm.get_cmap("RdYlBu_r", 5)  # 5 discrete colours (1 ~ 5)
+out_root = engine.to_experiment_dir("outputs")
 
 feat_all, dom_all, score_all = [], [], []
 for d_idx, tag in enumerate(tags):
@@ -160,31 +162,62 @@ dom = np.hstack(dom_all)
 scr = np.hstack(score_all)          # float → int
 scr = np.clip(np.round(scr).astype(int), 1, 5)
 
-# ── 차원 축소
-X50 = PCA(50).fit_transform(X)
+# ── 차원 축소 (공통) ─────────────────────────────────────
+X50 = PCA(args.pca_dim).fit_transform(X)
 X2  = TSNE(2, perplexity=args.perplexity, init="pca").fit_transform(X50)
 
-# ── 시각화: domain 별 marker, score 별 color
-plt.figure(figsize=(7,6))
-for d_idx, tag in enumerate(tags):
-    for s in range(1,6):
-        mask = (dom==d_idx) & (scr==s)
+
+domain_cols = ['tab:blue', 'tab:green', 'tab:red']  
+
+# (X2, dom, scr) 는 위에서 계산된 상태라고 가정
+for s in range(1, 6):
+    plt.figure(figsize=(6, 5))
+
+    for d_idx, tag in enumerate(tags):
+        mask = (dom == d_idx) & (scr == s)
         if mask.any():
-            plt.scatter(X2[mask,0], X2[mask,1],
+            plt.scatter(X2[mask, 0], X2[mask, 1],
                         s=6, marker=markers[d_idx],
-                        color=score_colors(s-1), alpha=.6,
-                        label=f"{tag}-score{s}" if d_idx==0 else None)
+                        color=domain_cols[d_idx], alpha=.7,
+                        label=tag)
 
-# 범례: 첫 도메인만 색설명, markers는 개별 텍스트로 추가
-from matplotlib.lines import Line2D
-color_handles = [Line2D([0],[0], marker='o', color=score_colors(i),
-                        linestyle='None', markersize=6, label=f"score {i+1}")
-                 for i in range(5)]
-marker_handles = [Line2D([0],[0], marker=markers[i], color='k',
-                         linestyle='None', markersize=7, label=tags[i])
-                  for i in range(len(tags))]
-plt.legend(handles=color_handles+marker_handles, frameon=False, ncol=2)
+    plt.title(f"t-SNE — score {s}")
+    plt.axis("off")
+    plt.legend(frameon=False, markerscale=1.5)
+    plt.tight_layout()
 
-plt.axis('off'); plt.tight_layout()
-plt.savefig(os.path.join(out_root, f"{args.output}_score_colored.png"), dpi=300)
-print("t-SNE saved with score colouring.")
+    fname = os.path.join(out_root, f"{args.output}_score{s}.png")
+    plt.savefig(fname, dpi=300)
+    plt.close()
+    print(f"✓ saved {fname}")
+
+
+for d_idx, tag in enumerate(tags):
+    mask_dom = dom == d_idx
+    if not mask_dom.any():          # 안전 체크
+        continue
+
+    plt.figure(figsize=(6, 5))
+
+    for s in range(1, 6):
+        mask = mask_dom & (scr == s)
+        if mask.any():
+            plt.scatter(X2[mask, 0], X2[mask, 1],
+                        s=6,
+                        marker=markers[d_idx],          # 도메인 고유 마커
+                        color=score_colors(s - 1),      # 점수별 색
+                        alpha=.7,
+                        label=f'score {s}')
+
+    plt.title(f"t-SNE — {tag}")
+    plt.axis("off")
+    plt.legend(frameon=False, markerscale=1.2, title="MOS")
+    plt.tight_layout()
+
+    fname = os.path.join(
+        out_root,
+        f"{args.output}_{tag.replace('/', '_')}_scores.png"
+    )
+    plt.savefig(fname, dpi=300)
+    plt.close()
+    print(f"✓ saved {fname}")
