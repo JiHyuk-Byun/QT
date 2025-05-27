@@ -1,6 +1,6 @@
 _base_: _train_base
 trainer:
-  max_epochs: 100
+  max_epochs: 1600
   strategy: ddp
   check_val_every_n_epoch: 4
   log_every_n_steps: 50

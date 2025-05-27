@@ -108,7 +108,7 @@ class Point(Dict):
 
         relay on ["grid_coord" or "coord" + "grid_size", "batch", "feat"]
         """
-        assert "batch" in self.keys()
+        assert "batch" in self.keys(), f'Keys: {self.keys()}'
         if "grid_coord" not in self.keys():
             # if you don't want to operate GridSampling in data augmentation,
             # please add the following augmentation into your pipline:
