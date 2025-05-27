@@ -24,5 +24,5 @@ dataset_config:
   hash_type: 'fnv'
   return_grid_coord: true
   
-  keys: ['coord', 'grid_coord', 'mos']
+  keys: ['coord', 'grid_coord', 'mos', 'id']
   feat_keys: ['coord', 'color', 'normal']

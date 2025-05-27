@@ -1,6 +1,8 @@
 import os
 from os import path as osp
+from typing import List
 
+import pandas as pd
 import torch
 import numpy as np
 
@@ -24,12 +26,31 @@ class EvaluationSolver(BaseSolver):
 
         outputs = self.solver(batch)
         preds = outputs.detach()
+        # print('#'*100)
+        # print('This is validation step')
+        # for k, v in batch.items():
+        #     print('-'*40)
+        #     print(f'key: {k}')
+        #     print(f'value:{v}')
+            
+        #     if isinstance(v, torch.Tensor):
+        #         print(f'shape: {v.shape}')
+        #         print(f'scale: {v.min()}~{v.max()}')
+        #     elif isinstance(v, list):
+        #         print(f'len: {len(v)}')
+        #         print(f'scale: {min(v)}~{max(v)}')
+        #     else:
+        #         print(f'TypeError: {v.type}')
+                
+
+        ids = batch['id']
         labels = batch['mos'].view_as(preds)
         labels = labels.detach()
         
         
         self._all_preds.append(preds)
         self._all_labels.append(labels)
+        self._all_ids.append(ids)
 #        _, _, preds_normalized = self._logistic_4_fitting(preds)
 #        labels_normalized = self._logistic_4_fitting(labels)
         # print(f'preds_norm: {preds_normalized[:20]}')
@@ -43,16 +64,22 @@ class EvaluationSolver(BaseSolver):
 
         preds_local = torch.cat(self._all_preds, dim=0)
         labels_local = torch.cat(self._all_labels, dim=0)
+        ids_local = self._all_ids
 
         preds_all = self.all_gather(preds_local)
         labels_all = self.all_gather(labels_local)
+        ids_all = self.all_gather(ids_local)
 
         if self.global_rank != 0:
             return
         assert len(self.criterion) == preds_all.shape[-1]
+
         preds_all = preds_all.reshape(-1, len(self.criterion)).cpu()
         labels_all = labels_all.reshape(-1, len(self.criterion)).cpu()
+        ids_all = [id for sub in ids_all for id in sub]
 
+        self._save_csv(ids_all, preds_all, labels_all)
+        
         scores_no_fitted = dict()
         scores_fitted = dict()
         for i, crit in enumerate(self.criterion):
@@ -88,5 +115,20 @@ class EvaluationSolver(BaseSolver):
         
         with open(out_path, 'w') as f:
             f.write(result)
+
+
+    def _save_csv(self, ids: List[str], preds: torch.tensor, scores: torch.tensor):
+        eval_result = {'id': ids}
+
+        for i, crit in enumerate(self.criterion):
+            eval_result[crit] = preds[:, i].tolist()
+        
+        eval_result['gt(preference)'] = scores[:, 5].tolist() if scores.dim() == 2 else scores.tolist()
+
+        outpath = osp.join(self.output_dir, f'eval_scores.csv')
+
+        df = pd.DataFrame(eval_result)
+
+        df.to_csv(outpath, index=False, encoding='utf-8-sig')
 
 

@@ -57,7 +57,7 @@ class GC3DDataset(Dataset):
                  hash_type: str = 'fnv',
                  return_grid_coord: bool = True,
                  
-                 keys=['coord', 'grid_coord', 'mos'],
+                 keys=['coord', 'grid_coord', 'mos', 'id'],
                  feat_keys=['coord', 'normal'],
                  manual_seed: int = None):
         
@@ -106,6 +106,7 @@ class GC3DDataset(Dataset):
     def __getitem__(self, idx):
         '''
         coord: almost -1~1
+        grid_coord: 0~98
         color: 0~1
         normal: -1~1
         metallic&roughness: 0~1 (No need to normalize)
@@ -130,6 +131,8 @@ class GC3DDataset(Dataset):
                     return None
 
         data_dict = dict()
+        data_dict['id'] = self.files[idx][0]
+        
         # Load features.
         for feat in self.feat_keys:
             assert feat in ['coord', 'color', 'normal','metallic', 'roughness'], f'Invalid feature is in feat_keys, feature type: {feat}'
@@ -141,6 +144,7 @@ class GC3DDataset(Dataset):
                                    dtype=torch.float32)
         
         data_dict = pc_normalize(data_dict)
+        data_dict = feat_normalize(data_dict)
         #data_dict = mos_normalize(data_dict)
         
         #Augmentation
@@ -151,5 +155,12 @@ class GC3DDataset(Dataset):
         data_dict = self.grid_sampler(data_dict)
         # Shuffle the order of pc and convert it to Tensor
         data_dict = to_tensor(shuffle_point(data_dict))
+        # for feat in self.feat_keys:
+        #     print('-'*40)
+        #     print(f'key: {feat}')
+        #     print(f'value: {data_dict[feat]}')
 
+        #     print(f'shape: {data_dict[feat].shape}')
+        #     print(f'scale: {data_dict[feat].min()}~{data_dict[feat].max()}')
+            
         return self.collect_keys(data_dict)

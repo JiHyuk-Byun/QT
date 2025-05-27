@@ -64,7 +64,7 @@ class ObjaverseDataset(Dataset):
                  hash_type: str = 'fnv',
                  return_grid_coord: bool = True,
 
-                 keys=['coord', 'grid_coord', 'mos'],
+                 keys=['coord', 'grid_coord', 'mos', 'id'],
                  feat_keys=['coord', 'normal'],
                  manual_seed: int = None):
         
@@ -113,6 +113,13 @@ class ObjaverseDataset(Dataset):
     
 
     def __getitem__(self, idx):
+        '''
+        coord: almost -1~1
+        grid_coord: 0~98
+        color: 0~1/0~255
+        normal: -1~1
+        metallic&roughness: 0~1/0~255 (No need to normalize)
+        '''
         file_path = osp.join(self.root_dir, self.files[idx][0])
         MOSlabels = self.files[idx][1:]
 
@@ -132,6 +139,8 @@ class ObjaverseDataset(Dataset):
                     return None
 
         data_dict = dict()
+        data_dict['id'] = self.files[idx][0]
+
         for feat in self.feat_keys:
             if feat in ['metallic', 'roughness']:
                 data_dict[feat] = data[feat][:, None].astype(np.float32)
@@ -151,5 +160,11 @@ class ObjaverseDataset(Dataset):
         # Grid sampling
         data_dict = self.grid_sampler(data_dict)
         data_dict = to_tensor(shuffle_point(data_dict))
+        # for feat in self.feat_keys:
+        #     print('-'*40)
+        #     print(f'key: {feat}')
+        #     print(f'value: {data_dict[feat]}')
 
+        #     print(f'shape: {data_dict[feat].shape}')
+        #     print(f'scale: {data_dict[feat].min()}~{data_dict[feat].max()}')
         return self.collect_keys(data_dict)

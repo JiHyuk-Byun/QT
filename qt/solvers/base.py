@@ -33,10 +33,12 @@ class BaseSolver(LightningModule):
         
         self._all_preds = []
         self._all_labels = []
+        self._all_ids = [] # purpose of checking evaluation results
         
     def on_validation_epoch_start(self) -> None:
         self._all_preds.clear()
         self._all_labels.clear()
+        self._all_ids.clear()
         self.reset_metrics()
 
     def configure_callbacks(self):

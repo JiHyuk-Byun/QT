@@ -43,7 +43,6 @@ def main():
         dm.enable_debug_mode()
 
     trainer: pl.Trainer = engine.prepare_trainer(cfg, gpus=args.gpus, debug=args.debug)
-    
 
     trainer.fit(model=solver, datamodule=dm)
 

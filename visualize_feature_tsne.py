@@ -204,8 +204,8 @@ for d_idx, tag in enumerate(tags):
         if mask.any():
             plt.scatter(X2[mask, 0], X2[mask, 1],
                         s=6,
-                        marker=markers[d_idx],          # 도메인 고유 마커
-                        color=score_colors(s - 1),      # 점수별 색
+                        marker=markers[d_idx],         
+                        color=score_colors(s - 1),   
                         alpha=.7,
                         label=f'score {s}')
 
