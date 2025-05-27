@@ -1,8 +1,8 @@
 import os
 from os import path as osp
 from typing import List
+import csv
 
-import pandas as pd
 import torch
 import numpy as np
 
@@ -117,18 +117,23 @@ class EvaluationSolver(BaseSolver):
             f.write(result)
 
 
-    def _save_csv(self, ids: List[str], preds: torch.tensor, scores: torch.tensor):
-        eval_result = {'id': ids}
+def _save_csv(self, ids: List[str], preds: torch.Tensor, scores: torch.Tensor):
 
-        for i, crit in enumerate(self.criterion):
-            eval_result[crit] = preds[:, i].tolist()
-        
-        eval_result['gt(preference)'] = scores[:, 5].tolist() if scores.dim() == 2 else scores.tolist()
+    eval_result = {'id': ids}                          
+    for i, crit in enumerate(self.criterion):          
+        eval_result[crit] = preds[:, i].tolist()
 
-        outpath = osp.join(self.output_dir, f'eval_scores.csv')
+    eval_result['gt(preference)'] = (
+        scores[:, 5].tolist() if scores.dim() == 2 else scores.tolist()
+    )
 
-        df = pd.DataFrame(eval_result)
+    outpath = osp.join(self.output_dir, "eval_scores.csv")
 
-        df.to_csv(outpath, index=False, encoding='utf-8-sig')
+    header = list(eval_result.keys())                  # ['id', crit1, crit2, ..., 'gt(preference)']
+    with open(outpath, "w", newline="", encoding="utf-8") as f:
+        writer = csv.DictWriter(f, fieldnames=header)
+        writer.writeheader()
 
+        for row_vals in zip(*eval_result.values()):
+            writer.writerow(dict(zip(header, row_vals)))
 
