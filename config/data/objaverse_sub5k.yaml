@@ -2,5 +2,3 @@ _base_: objaverse_base
 root_dir: datasets/objaverse_5000
 train_split: datasets/objaverse_comparable_5000/train_split.csv
 test_split: datasets/objaverse_comparable_5000/test_split.csv
-batch_size: 32
-eval_batch_size: 32
