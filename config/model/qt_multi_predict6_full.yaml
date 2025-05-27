@@ -1,4 +1,4 @@
-_base_: qt_objaverse_full
+_base_: qt_objaverse_full2
 
 in_channels: 11
 
