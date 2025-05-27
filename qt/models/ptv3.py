@@ -93,6 +93,7 @@ class Point(Dict):
     - "sparse_shape": Sparse shape for Sparse Conv Tensor;
     - "sparse_conv_feat": SparseConvTensor init with information provide by Point;
     """
+    
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
