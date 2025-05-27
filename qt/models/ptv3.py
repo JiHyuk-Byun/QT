@@ -24,7 +24,6 @@ except ImportError:
 
 from qt.serialization import encode
 
-
 @torch.inference_mode()
 def offset2bincount(offset):
     return torch.diff(
