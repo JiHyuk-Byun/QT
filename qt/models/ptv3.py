@@ -93,7 +93,7 @@ class Point(Dict):
     - "sparse_shape": Sparse shape for Sparse Conv Tensor;
     - "sparse_conv_feat": SparseConvTensor init with information provide by Point;
     """
-    
+                                    
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
@@ -347,7 +347,6 @@ class RPE(torch.nn.Module):
         out = out.view(idx.shape + (-1,)).sum(3)
         out = out.permute(0, 3, 1, 2)  # (N, K, K, H) -> (N, H, K, K)
         return out
-
 
 class SerializedAttention(PointModule):
     def __init__(

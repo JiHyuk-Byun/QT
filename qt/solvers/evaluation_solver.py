@@ -115,8 +115,7 @@ class EvaluationSolver(BaseSolver):
         
         with open(out_path, 'w') as f:
             f.write(result)
-
-
+            
     def _save_csv(self, ids: List[str], preds: torch.Tensor, scores: torch.Tensor):
 
         eval_result = {'id': ids}                          
