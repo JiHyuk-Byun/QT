@@ -256,7 +256,6 @@ class PointSequential(PointModule):
 
     def forward(self, input):
         for k, module in self._modules.items():
-
             input = forward_module(module, input)
 
             # # Point module
@@ -1040,7 +1039,6 @@ class PointTransformerV3(PointModule):
         point = Point(data_dict)
         point.serialization(order=self.order, shuffle_orders=self.shuffle_orders)
         point.sparsify()
-
         point = self.embedding(point)
 
         if self.multi_scale:

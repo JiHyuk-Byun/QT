@@ -34,6 +34,7 @@ def feat_normalize(data_dict):
     if 'color' in data_dict.keys():
         if data_dict['color'].max() > 1.0:
             data_dict['color'] = data_dict['color'] / 255.0
+
     if 'metallic' in data_dict:
         if data_dict['metallic'].max() > 1.0:
             v = data_dict['metallic'].astype(np.float32) / 255.0

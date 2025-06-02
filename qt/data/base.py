@@ -40,6 +40,8 @@ class QA3DBaseDataModule(LightningDataModule, ABC):
         self.num_workers = num_workers
         self.eval_batch_size = eval_batch_size
 
+        self.criterion = None
+
     def setup(self, stage=None):
         pass
 
