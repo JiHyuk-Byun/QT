@@ -32,7 +32,7 @@ def pc_normalize(data_dict):
 def feat_normalize(data_dict):
     eps = 1e-8
     if 'color' in data_dict.keys():
-        if data_dict['color'].max() > 1.0:
+        # if data_dict['color'].max() > 1.0:
             data_dict['color'] = data_dict['color'] / 255.0
     if 'metallic' in data_dict:
         if data_dict['metallic'].max() > 1.0:
