@@ -19,6 +19,20 @@ SAVE_PLY = True
 SAVE_ITEM = True
 N_SAMPLE = 60000
 
+def _norm_to_rgb(normals):
+    """[-1,1] 범위 → [0,1] 컬러"""
+    return (normals * 0.5 + 0.5).clip(0, 1)
+
+def _single_to_gray(vals):
+    """0~1 스칼라 → 회색"""
+    return np.repeat(vals[:, None], 3, axis=1)
+
+def _single_to_cyan(vals):
+    """0~1 스칼라 → 금속(시안)"""
+    rgb = np.zeros((len(vals), 3), dtype=np.float32)
+    rgb[:, 1:] = vals[:, None]        # G, B 채널만
+    return rgb
+
 def save_pointcloud_as_ply(positions, colors=None, normals=None, filename="output.ply"):
     pcd = o3d.geometry.PointCloud()
     pcd.points = o3d.utility.Vector3dVector(positions)
@@ -239,7 +253,24 @@ def main():
             os.makedirs(osp.dirname(out_path), exist_ok=True)
             np.save(out_path, features, allow_pickle=True)
             if SAVE_PLY:
-                save_pointcloud_as_ply(features['coord'], features['color'], features['normal'], filename=out_path+'.ply')
+                base = out_path                      # …/features
+                # ① 알베도
+                save_pointcloud_as_ply(features['coord'],
+                                    colors=features['color'],
+                                    normals=features['normal'],
+                                    filename=base + '_albedo.ply')
+                # ② 노멀
+                save_pointcloud_as_ply(features['coord'],
+                                    colors=_norm_to_rgb(features['normal']),
+                                    filename=base + '_normalRGB.ply')
+                # ③ 러프니스
+                save_pointcloud_as_ply(features['coord'],
+                                    colors=_single_to_gray(features['roughness']),
+                                    filename=base + '_roughness.ply')
+                # ④ 메탈릭
+                save_pointcloud_as_ply(features['coord'],
+                                    colors=_single_to_cyan(features['metallic']),
+                                    filename=base + '_metallic.ply')
         except Exception as e: 
             print('error!')
             log_filename = f"{item}.txt"

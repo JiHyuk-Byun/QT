@@ -114,7 +114,7 @@ class ObjaverseDataset(Dataset):
 
     def __getitem__(self, idx):
         '''
-        coord: almost -1~1
+        coord: almost -1~1(after normalize)
         grid_coord: 0~98
         color: 0~1/0~255
         normal: -1~1

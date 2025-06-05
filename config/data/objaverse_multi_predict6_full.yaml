@@ -13,12 +13,27 @@ dataset_config:
       angle: [-1, 1]
       axis: 'z'
       center: [0, 0, 0]
+      p: 0.8
+    RandomRotate:
+      angle: [ -0.015625, 0.015625]
+      axis: 'y'
+      center: [0, 0, 0]
+      p: 0.8
+    RandomRotate:
+      angle: [-0.015625, -0.015625]
+      axis: 'x'
+      center: [0, 0, 0]
+      p: 0.8 
+    RandomFlip:
       p: 0.5
     RandomScale:
       scale: [0.7, 1.5]
       anisotropic: true
     RandomShift:
       shift: [[-0.2, 0.2], [-0.2, 0.2], [-0.2, 0.2]]
+    RandomJitter:
+      sigma: 0.005
+      clip: 0.02
 
   grid_size: 0.02
   hash_type: 'fnv'
