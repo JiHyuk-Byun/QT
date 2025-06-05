@@ -103,7 +103,8 @@ class ObjaverseDataset(Dataset):
 
         if isinstance(augments, list):
             for cfg in augments:
-                fn_name = cfg['name']
+                print(cfg)
+                fn_name = cfg.pop('name')
                 if hasattr(utils, fn_name):
                     transform_fns.append(getattr(utils, fn_name)(**cfg))
                 else:
