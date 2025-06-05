@@ -14,23 +14,29 @@ dataset_config:
       axis: 'z'
       center: [0, 0, 0]
       p: 0.8
+
     - name: 'RandomRotate'
       angle: [ -0.015625, 0.015625]
       axis: 'y'
       center: [0, 0, 0]
       p: 0.8
+
     - name: 'RandomRotate'
       angle: [-0.015625, -0.015625]
       axis: 'x'
       center: [0, 0, 0]
       p: 0.8 
+
     - name: 'RandomFlip'
       p: 0.5
+
     - name: 'RandomScale'
       scale: [0.7, 1.5]
       anisotropic: true
+
     - name: 'RandomShift'
       shift: [[-0.2, 0.2], [-0.2, 0.2], [-0.2, 0.2]]
+      
     - name: 'RandomJitter'
       sigma: 0.005
       clip: 0.02
