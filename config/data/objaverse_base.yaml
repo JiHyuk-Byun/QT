@@ -11,29 +11,35 @@ dataset_config:
   manual_seed: 123456
 
   augments:
-    RandomRotate:
+    - name: 'RandomRotate'
       angle: [-1, 1]
       axis: 'z'
       center: [0, 0, 0]
       p: 0.8
-    RandomRotate:
+
+    - name: 'RandomRotate'
       angle: [ -0.015625, 0.015625]
       axis: 'y'
       center: [0, 0, 0]
       p: 0.8
-    RandomRotate:
+
+    - name: 'RandomRotate'
       angle: [-0.015625, -0.015625]
       axis: 'x'
       center: [0, 0, 0]
       p: 0.8 
-    RandomFlip:
+
+    - name: 'RandomFlip'
       p: 0.5
-    RandomScale:
+
+    - name: 'RandomScale'
       scale: [0.7, 1.5]
       anisotropic: true
-    RandomShift:
+
+    - name: 'RandomShift'
       shift: [[-0.2, 0.2], [-0.2, 0.2], [-0.2, 0.2]]
-    RandomJitter:
+      
+    - name: 'RandomJitter'
       sigma: 0.005
       clip: 0.02
       
