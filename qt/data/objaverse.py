@@ -58,7 +58,7 @@ class ObjaverseDataset(Dataset):
                  test_split: str,
                  criterion: list,
                  split: str,
-                 augments: Dict[str, dict],
+                 augments: List[dict],
 
                  grid_size: int = 0.02,
                  hash_type: str = 'fnv',
@@ -103,10 +103,10 @@ class ObjaverseDataset(Dataset):
 
         if isinstance(augments, list):
             for cfg in augments:
-                print(cfg)
-                fn_name = cfg.pop('name')
+                cfg_local = cfg.copy()
+                fn_name = cfg_local.pop('name')
                 if hasattr(utils, fn_name):
-                    transform_fns.append(getattr(utils, fn_name)(**cfg))
+                    transform_fns.append(getattr(utils, fn_name)(**cfg_local))
                 else:
                     raise AttributeError(f'No function named {fn_name} defined in utils.py')
 
