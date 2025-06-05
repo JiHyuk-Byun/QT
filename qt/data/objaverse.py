@@ -100,16 +100,15 @@ class ObjaverseDataset(Dataset):
             return transform_fns
 
         utils = importlib.import_module('qt.data.utils')
-    # ── 리스트 형식 ────────────────────────────────
+
         if isinstance(augments, list):
             for cfg in augments:
-                fn_name = cfg.pop('name')
+                fn_name = cfg['name']
                 if hasattr(utils, fn_name):
                     transform_fns.append(getattr(utils, fn_name)(**cfg))
                 else:
                     raise AttributeError(f'No function named {fn_name} defined in utils.py')
 
-        # ── 기존 dict 형식 ────────────────────────────
         elif isinstance(augments, dict):
             for fn_name, args in augments.items():
                 if hasattr(utils, fn_name):
