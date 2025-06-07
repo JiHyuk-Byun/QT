@@ -85,18 +85,32 @@ class GC3DDataset(Dataset):
         self.collect_keys = Collect(keys=keys, feat_keys=feat_keys)
         # after collect, e.g. key: [coord, grid_coord, 'mos', 'offset', 'feat'(which is concatnated)] 
     
-    def _compose(self, augments: Dict[str, dict]) -> list:
+    def _compose(self, augments: List[dict]):
         
         transform_fns = []
         if augments == None:
             return transform_fns
 
         utils = importlib.import_module('qt.data.utils')
-        for fn_name, args in augments.items():
-            if hasattr(utils, fn_name):
-                transform_fns.append(getattr(utils, fn_name)(**args))
-            else:
-                raise AttributeError(f'No function named {fn_name} defined in utils.py')
+
+        if isinstance(augments, list):
+            for cfg in augments:
+                cfg_local = cfg.copy()
+                fn_name = cfg_local.pop('name')
+                if hasattr(utils, fn_name):
+                    transform_fns.append(getattr(utils, fn_name)(**cfg_local))
+                else:
+                    raise AttributeError(f'No function named {fn_name} defined in utils.py')
+
+        elif isinstance(augments, dict):
+            for fn_name, args in augments.items():
+                if hasattr(utils, fn_name):
+                    transform_fns.append(getattr(utils, fn_name)(**args))
+                else:
+                    raise AttributeError(f'No function named {fn_name} defined in utils.py')
+
+        else:
+            raise TypeError("augments must be list or dict")
 
         return transform_fns
     

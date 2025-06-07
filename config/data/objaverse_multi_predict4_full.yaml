@@ -1,0 +1,58 @@
+_base_: objaverse_full
+
+criterion: ['geometry', 'texture', 'plausibility', 'preference']
+batch_size: 32
+num_workers: 4
+eval_batch_size: 32
+
+dataset_config:
+  manual_seed: 123456
+
+  augments:
+    - name: 'RandomRotate'
+      angle: [-1, 1]
+      axis: 'z'
+      center: [0, 0, 0]
+      p: 0.8
+
+    - name: 'RandomRotate'
+      angle: [ -0.015625, 0.015625]
+      axis: 'y'
+      center: [0, 0, 0]
+      p: 0.8
+
+    - name: 'RandomRotate'
+      angle: [-0.015625, -0.015625]
+      axis: 'x'
+      center: [0, 0, 0]
+      p: 0.8 
+
+    - name: 'RandomFlip'
+      p: 0.5
+
+    - name: 'RandomScale'
+      scale: [0.7, 1.5]
+      anisotropic: true
+
+    - name: 'RandomShift'
+      shift: [[-0.2, 0.2], [-0.2, 0.2], [-0.2, 0.2]]
+      
+    - name: 'RandomJitter'
+      sigma: 0.005
+      clip: 0.02
+
+  grid_size: 0.02
+  hash_type: 'fnv'
+  return_grid_coord: true
+  
+  keys: ['coord', 'grid_coord', 'mos', 'id']
+  feat_keys: ['coord', 'color', 'normal']
+  
+# point 수 6만개로 낮추기
+# grid_size 낮추기
+# flash attn 돌리기
+
+# batch size 
+# gradient accumulation
+# layer norm 으로 돌려보기 
+# optimizer&scheduler

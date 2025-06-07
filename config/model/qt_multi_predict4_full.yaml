@@ -1,0 +1,7 @@
+_base_: qt_objaverse_full
+
+in_channels: 9
+
+enable_flash: true
+n_prediction: 4
+multi_scale: false

@@ -97,7 +97,7 @@ class EvaluationSolver(BaseSolver):
             for p, l in zip(pred, gt):
                 print(f'pred: {p}, gt: {l}')
 
-            score_pairs_list.append((pred.tolist(), gt.tolist()))
+
 
             pred_norm = self._min_max_normalize(pred)
             gt_norm = self._min_max_normalize(gt)
@@ -106,6 +106,8 @@ class EvaluationSolver(BaseSolver):
 
             metrics_no_fitted = self._evaluate_metrics(pred_norm_t, gt_norm_t)
             scores_no_fitted[crit] = metrics_no_fitted
+
+            score_pairs_list.append((pred_norm.tolist(), gt_norm.tolist()))
 
             _, _, pred_fitted = self._logistic_4_fitting(pred, gt)
             preds_t = torch.from_numpy(pred_fitted)
