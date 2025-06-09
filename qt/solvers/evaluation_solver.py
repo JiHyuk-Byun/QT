@@ -109,8 +109,8 @@ class EvaluationSolver(BaseSolver):
 
             score_pairs_list.append((pred_norm.tolist(), gt_norm.tolist()))
 
-            pred_fitted = pred_norm_t #self._logistic_4_fitting(pred, gt)
-            preds_t = torch.from_numpy(pred_fitted)
+            #_, _, pred_fitted = self._logistic_4_fitting(pred, gt)
+            preds_t = pred_norm_t #torch.from_numpy(pred_fitted)
             gt_t = torch.from_numpy(gt)
 
             metrics_fitted = self._evaluate_metrics(preds_t, gt_t)
