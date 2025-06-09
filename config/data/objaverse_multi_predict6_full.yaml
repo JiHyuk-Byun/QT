@@ -41,6 +41,14 @@ dataset_config:
       sigma: 0.005
       clip: 0.02
 
+    - name: 'RandomColorJitter'
+      brightness: 0.4
+      contrast:   0.4
+      saturation: 0.2
+      hue:        0.02  
+      p:          0.8
+
+
   grid_size: 0.02
   hash_type: 'fnv'
   return_grid_coord: true

@@ -2,6 +2,7 @@ _base_: qt_objaverse_full
 
 in_channels: 11
 
+enable_bn: false
 enable_flash: true
 n_prediction: 6
 multi_scale: true
