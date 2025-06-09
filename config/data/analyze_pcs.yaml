@@ -5,8 +5,8 @@ test_split: datasets/analyze_pcs/test_split.csv
 
 criterion: ['geometry', 'texture', 'material', 'plausibility', 'artifact', 'preference'] # geometry, texture, material, plausibility, artifacts, preference
 num_workers: 1
-batch_size: 4
-eval_batch_size: 4
+batch_size: 1
+eval_batch_size: 1
 
 dataset_config:
   manual_seed: 123456
