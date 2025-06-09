@@ -1,5 +1,6 @@
 import random
 import csv
+import numbers
 
 import torch
 import numpy as np
@@ -342,6 +343,36 @@ class RandomRotate(object):
             data_dict["normal"] = np.dot(data_dict["normal"], np.transpose(rot_t))
         return data_dict
 
+class RandomColorGrayScale(object):
+    def __init__(self, p):
+        self.p = p
+
+    @staticmethod
+    def rgb_to_grayscale(color, num_output_channels=1):
+        if color.shape[-1] < 3:
+            raise TypeError(
+                "Input color should have at least 3 dimensions, but found {}".format(
+                    color.shape[-1]
+                )
+            )
+
+        if num_output_channels not in (1, 3):
+            raise ValueError("num_output_channels should be either 1 or 3")
+
+        r, g, b = color[..., 0], color[..., 1], color[..., 2]
+        gray = (0.2989 * r + 0.587 * g + 0.114 * b).astype(color.dtype)
+        gray = np.expand_dims(gray, axis=-1)
+
+        if num_output_channels == 3:
+            gray = np.broadcast_to(gray, color.shape)
+
+        return gray
+
+    def __call__(self, data_dict):
+        if np.random.rand() < self.p:
+            data_dict["color"] = self.rgb_to_grayscale(data_dict["color"], 3)
+        return data_dict
+        
 class RandomColorJitter(object):
     """
     Random Color Jitter for 3D point cloud (refer torchvision)
